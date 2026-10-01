@@ -21,17 +21,17 @@ on:
 permissions:
   contents: write     # guarda historial.db y reportes en la rama "datos"
 
-concurrency:
-  group: busqueda-vuelos
-  cancel-in-progress: false
-
 env:
   TZ: America/Argentina/Buenos_Aires
 
 jobs:
-  buscar:
+  # Liviano y sin cola: decide si hay algo para buscar. Así las ejecuciones horarias sin trabajo
+  # nunca entran a la cola de "buscar" (no cancelan un pedido manual que esté esperando).
+  decidir:
     runs-on: ubuntu-latest
-    timeout-minutes: 330
+    timeout-minutes: 10
+    outputs:
+      hay: ${{ steps.decidir.outputs.hay }}
     steps:
       - uses: actions/checkout@v4
 
@@ -74,12 +74,37 @@ jobs:
             git push -q origin HEAD:${GITHUB_REF_NAME} && echo "Commit de mantenimiento hecho"
           fi
 
+  buscar:
+    needs: decidir
+    if: needs.decidir.outputs.hay == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    concurrency:            # una búsqueda a la vez (todas escriben la misma rama "datos")
+      group: busqueda-vuelos
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Recuperar historial (rama "datos")
+        run: |
+          # El historial vive en una rama aparte que se PISA en cada corrida (un solo commit),
+          # así el repo no crece con una copia de la base por día.
+          if git fetch --depth=1 origin datos 2>/dev/null; then
+            mkdir -p data reportes
+            git archive FETCH_HEAD | tar -x   # la rama solo tiene data/ y reportes/
+            echo "Historial restaurado"
+          else
+            echo "Todavía no hay rama datos: primera corrida"
+          fi
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - name: Instalar dependencias
-        if: steps.decidir.outputs.hay == 'true'
         run: pip install -r requirements.txt
 
       - name: Buscar precios, generar reportes y enviar alertas
-        if: steps.decidir.outputs.hay == 'true'
         env:
           SERPAPI_API_KEY: ${{ secrets.SERPAPI_API_KEY }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
@@ -113,7 +138,7 @@ jobs:
           python -m src.main "${args[@]}"
 
       - name: Guardar historial y reportes (rama "datos", se pisa cada vez)
-        if: always() && steps.decidir.outputs.hay == 'true'
+        if: always()
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -125,7 +150,7 @@ jobs:
           git push -f origin datos-tmp:datos
 
       - name: Subir log
-        if: always() && steps.decidir.outputs.hay == 'true'
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: log-${{ github.run_id }}
