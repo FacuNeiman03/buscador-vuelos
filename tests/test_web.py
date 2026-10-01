@@ -30,7 +30,7 @@ def test_suscripcion_y_baja(monkeypatch):
         import src.web.app as w
         w._ultimos_envios.clear()
         r = c.post("/suscribirse", data={"email": "a@b.com", "busqueda": "Verano", "desde": "2027-01-01", "hasta": "2027-01-31"})
-        assert r.status_code == 200 and "te mandamos un mail" in r.text
+        assert r.status_code == 200 and "te llega un mail" in r.text
         assert not subs.de_busqueda("Verano")          # pendiente hasta confirmar
         assert mails and mails[0][0] == "a@b.com"
         import re
@@ -113,3 +113,36 @@ def test_modo_nube_dispara_y_baja(monkeypatch):
         w.nube.consultado = 0
         e = c.get("/api/estado").json()
         assert not e["corriendo"] and not e["error"] and len(bajadas) == n + 1
+
+
+def test_confirmacion_en_la_nube(monkeypatch):
+    """Render no puede usar SMTP: dispara confirmacion.yml con un hash, y Actions manda el mail."""
+    import re
+    import src.web.app as w
+    import src.notifications.mailer as mailer
+    from src.core import github_sync as gh
+    from src.core import suscriptores as subs
+    from src.notifications import confirmacion
+    monkeypatch.setenv("GITHUB_TOKEN", "t")
+    monkeypatch.setenv("GITHUB_REPOSITORY", "u/r")
+    monkeypatch.setenv("VUELOS_EJECUCION", "github")
+    monkeypatch.setattr(w, "_regenerar", lambda: None)
+    monkeypatch.setattr(gh, "bajar_archivo", lambda ruta: False)
+    monkeypatch.setattr(gh, "sha_datos", lambda: None)
+    monkeypatch.setattr(gh, "subir", lambda *a, **k: True)
+    disparos, mails = [], []
+    monkeypatch.setattr(gh, "disparar_workflow", lambda archivo, inputs: disparos.append((archivo, inputs)) or (True, ""))
+    monkeypatch.setattr(mailer, "enviar_email", lambda para, asunto, html, texto, remitente="": mails.append((para, html)))
+    with cliente() as c:
+        w._ultimos_envios.clear()
+        r = c.post("/suscribirse", data={"email": "nube@b.com", "busqueda": "Verano"})
+        assert r.status_code == 200 and "te llega un mail" in r.text
+    assert not mails and disparos and disparos[0][0] == "confirmacion.yml"
+    ref = disparos[0][1]["ref"]
+    assert "nube@b.com" not in ref and len(ref) == 24
+    monkeypatch.setenv("VUELOS_URL_WEB", "https://web.test")
+    assert confirmacion.enviar_pendiente(ref)        # lo que corre en GitHub Actions
+    assert mails[0][0] == "nube@b.com" and "https://web.test/confirmar?token=" in mails[0][1]
+    token = re.search(r"token=([^\"&]+)", mails[0][1]).group(1)
+    subs.confirmar(token)
+    assert any(s["email"] == "nube@b.com" for s in subs.de_busqueda("Verano"))

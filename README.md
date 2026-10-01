@@ -303,7 +303,6 @@ Para probarlo: **Actions → Búsqueda de vuelos → Run workflow**.
 2. Completá:
    - `GITHUB_TOKEN`: token *fine-grained* (github.com/settings/personal-access-tokens), solo sobre este repo, con **Contents: Read and write** y **Actions: Read and write**.
    - `VUELOS_CLAVE`: la misma frase que en GitHub.
-   - `SMTP_USER` / `SMTP_PASSWORD`: los mismos de Gmail (para el mail de confirmación de suscripciones).
    - `VUELOS_URL_WEB`: la URL que te da Render.
 3. `WEB_ADMIN_TOKEN` se genera solo (Environment en el panel de Render). La web te lo pide la primera vez que creás, editás o actualizás algo, y queda guardado en ese navegador.
 
@@ -311,7 +310,7 @@ El plan gratis "duerme" a los 15 min sin visitas y tarda ~1 min en despertar. Al
 
 ### 7.4 Suscripciones
 
-Cualquiera con el link `/suscribirse` puede pedir alertas de una búsqueda. Recibe un mail y recién queda anotado cuando abre el link de confirmación. `/baja` lo da de baja. Los emails se guardan cifrados en `data/suscriptores.json`.
+Cualquiera con el link `/suscribirse` puede pedir alertas de una búsqueda. Recibe un mail y recién queda anotado cuando abre el link de confirmación. Ese mail lo manda GitHub Actions (workflow `confirmacion.yml`), porque Render gratis bloquea SMTP. `/baja` lo da de baja. Los emails se guardan cifrados en `data/suscriptores.json`.
 
 ---
 

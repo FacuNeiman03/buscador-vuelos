@@ -1,0 +1,38 @@
+name: Mail de confirmación
+
+# La web la dispara cuando alguien se suscribe (Render gratis no puede mandar mails por SMTP).
+# Solo recibe una referencia (hash): el email y el token nunca aparecen en el log público.
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Referencia de la suscripción (la pone la web)"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  enviar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -q -r requirements.txt
+      - name: Mandar mail
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST || 'smtp.gmail.com' }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT || '587' }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_FROM: ${{ secrets.RESEND_FROM }}
+          VUELOS_CLAVE: ${{ secrets.VUELOS_CLAVE }}
+          VUELOS_URL_WEB: ${{ vars.VUELOS_URL_WEB }}
+          REF: ${{ inputs.ref }}
+        run: python -m src.notifications.confirmacion "$REF"

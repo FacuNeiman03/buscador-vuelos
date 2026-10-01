@@ -1,5 +1,5 @@
 # Blueprint de Render (plan gratuito). Render -> New -> Blueprint -> elegí este repo.
-# La web NO busca: dispara la búsqueda en GitHub Actions y baja los resultados de la rama "datos".
+# La web NO busca ni manda mails (Render gratis bloquea SMTP): dispara GitHub Actions y baja los resultados.
 services:
   - type: web
     name: buscador-vuelos
@@ -24,14 +24,6 @@ services:
       - key: GITHUB_TOKEN           # fine-grained: Contents + Actions (Read and write) solo sobre este repo
         sync: false
       - key: VUELOS_CLAVE           # la MISMA que el secreto VUELOS_CLAVE de GitHub (cifra los suscriptores)
-        sync: false
-      - key: SMTP_HOST              # mail de confirmación de suscripciones (las alertas salen de GitHub Actions)
-        value: smtp.gmail.com
-      - key: SMTP_PORT
-        value: "587"
-      - key: SMTP_USER
-        sync: false
-      - key: SMTP_PASSWORD
         sync: false
       - key: VUELOS_URL_WEB         # ej: https://buscador-vuelos.onrender.com
         sync: false

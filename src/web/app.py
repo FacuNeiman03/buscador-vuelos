@@ -457,27 +457,23 @@ def suscribirse(request: Request, email: str = Form(...), busqueda: str = Form(.
             log.info(f"No se pudo mandar el mail de confirmación a {email}: {e}")
             return templates.TemplateResponse(request, "suscribirse.html", {
                 "busquedas": nombres, "sel": busqueda, "datos": datos, "ok": None,
-                "error": "No pudimos mandar el mail de confirmación. Probá de nuevo más tarde."}, status_code=502)
-        ok = (f"Casi listo: te mandamos un mail a {email}. Abrí el link que tiene para confirmar "
+                "error": "No pudimos mandar el mail de confirmación. Probá de nuevo en unos minutos."}, status_code=502)
+        ok = (f"Casi listo: en 1 o 2 minutos te llega un mail a {email} (mirá también en spam). Abrí el link para confirmar "
               f"y empezar a recibir las alertas de '{busqueda}'{rango}.")
     return templates.TemplateResponse(request, "suscribirse.html", {
         "busquedas": nombres, "sel": busqueda, "error": None, "datos": {}, "ok": ok})
 
 
 def _mail_confirmacion(request: Request, email: str, busqueda: str, token: str) -> None:
-    from html import escape
-    from urllib.parse import quote
-    from ..notifications.mailer import enviar_email
-    base = (os.environ.get("VUELOS_URL_WEB") or str(request.base_url)).rstrip("/")
-    link = f"{base}/confirmar?token={quote(token)}"
-    asunto = f"Confirmá tus alertas de vuelos: {busqueda}"
-    texto = (f"Alguien (seguramente vos) pidió alertas de precio para '{busqueda}' a este mail.\n\n"
-             f"Para confirmarlo abrí: {link}\n\nSi no fuiste vos, ignorá este mail y no vas a recibir nada.")
-    html = (f"<p>Alguien (seguramente vos) pidió alertas de precio para <b>{escape(busqueda)}</b> a este mail.</p>"
-            f'<p><a href="{escape(link)}" style="display:inline-block;padding:10px 16px;background:#0b57d0;'
-            f'color:#fff;border-radius:8px;text-decoration:none">Confirmar alertas</a></p>'
-            f"<p style='color:#666'>Si no fuiste vos, ignorá este mail y no vas a recibir nada.</p>")
-    enviar_email(email, asunto, html, texto)
+    from ..notifications import confirmacion
+    if modo_nube():
+        # Render gratis bloquea SMTP: el mail lo manda GitHub Actions (workflow confirmacion.yml)
+        ok, msg = gh.disparar_workflow("confirmacion.yml", {"ref": confirmacion.referencia(token)})
+        if not ok:
+            raise RuntimeError(msg)
+        return
+    base = os.environ.get("VUELOS_URL_WEB") or str(request.base_url)
+    confirmacion.enviar(email, busqueda, token, base)
 
 
 @app.get("/confirmar", response_class=HTMLResponse)

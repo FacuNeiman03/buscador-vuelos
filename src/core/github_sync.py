@@ -95,11 +95,14 @@ def _api(metodo: str, ruta: str, cuerpo: dict | None = None, timeout: int = 20):
 
 
 def disparar_busqueda(busqueda: str | None) -> tuple[bool, str]:
-    """Lanza el workflow en GitHub Actions (workflow_dispatch). Devuelve (ok, mensaje de error)."""
+    """Lanza la búsqueda en GitHub Actions (workflow_dispatch). Devuelve (ok, mensaje de error)."""
+    return disparar_workflow(WORKFLOW, {"busqueda": busqueda or ""})
+
+
+def disparar_workflow(archivo: str, inputs: dict) -> tuple[bool, str]:
     rama = os.environ.get("GITHUB_BRANCH", "main")
     try:
-        st, j = _api("POST", f"/actions/workflows/{WORKFLOW}/dispatches",
-                     {"ref": rama, "inputs": {"busqueda": busqueda or ""}})
+        st, j = _api("POST", f"/actions/workflows/{archivo}/dispatches", {"ref": rama, "inputs": inputs})
     except OSError as e:
         return False, f"sin conexión con GitHub ({e})"
     if st == 204:
@@ -108,7 +111,7 @@ def disparar_busqueda(busqueda: str | None) -> tuple[bool, str]:
     if st in (401, 403):
         return False, f"GitHub rechazó el token ({st}): revisá que tenga permiso Actions: Read and write. {detalle}"
     if st == 404:
-        return False, f"GitHub no encuentra el workflow {WORKFLOW} en {os.environ['GITHUB_REPOSITORY']} (404)"
+        return False, f"GitHub no encuentra el workflow {archivo} en {os.environ['GITHUB_REPOSITORY']} (404)"
     return False, f"GitHub respondió {st}: {detalle}"
 
 
