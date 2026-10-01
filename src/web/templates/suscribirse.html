@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block titulo %}Alertas por email · Vuelos baratos{% endblock %}
+{% block contenido %}
+<div class="card">
+  <span class="ico-circ" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span>
+  <h1>Alertas por email</h1>
+  <p class="sub">Te escribimos solo cuando el precio baja respecto del mínimo que ya vimos, o cuando al mismo precio aparece un vuelo con menos escalas o más corto. Si no cambia nada, no te llega nada.</p>
+  {% if ok %}<div class="msg ok" role="status"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>{{ ok }}</span></div>{% endif %}
+  {% if error %}<div class="msg err" role="alert"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l10 18H2L12 3z"/><path d="M12 10v5M12 18v.01"/></svg><span>{{ error }}</span></div>{% endif %}
+  {% if busquedas %}
+  <form method="post" action="/suscribirse">
+    <label for="email">Tu email</label>
+    <input id="email" name="email" type="email" required maxlength="254" value="{{ datos.email or '' }}" autocomplete="email" placeholder="nombre@ejemplo.com">
+    <label for="busqueda">Viaje</label>
+    <select id="busqueda" name="busqueda" required>
+      {% for b in busquedas %}<option value="{{ b }}" {% if b == sel %}selected{% endif %}>{{ b }}</option>{% endfor %}
+    </select>
+    <div class="fila">
+      <div><label for="desde">Salir desde <small>(opcional)</small></label><input id="desde" name="desde" type="date" value="{{ datos.desde or '' }}"></div>
+      <div><label for="hasta">Salir hasta <small>(opcional)</small></label><input id="hasta" name="hasta" type="date" value="{{ datos.hasta or '' }}"></div>
+    </div>
+    <input class="hp" name="web" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <button type="submit">Avisarme</button>
+  </form>
+  <p class="nota">Si elegís fechas, solo te avisamos de vuelos que salgan en ese rango. Cada email trae un link para darte de baja.</p>
+  {% else %}
+  <p class="sub" style="margin:0">No hay búsquedas activas en este momento.</p>
+  {% endif %}
+</div>
+{% endblock %}

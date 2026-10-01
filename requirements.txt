@@ -1,0 +1,7 @@
+# Núcleo (búsqueda, reportes, alertas). Solo esto hace falta en la PC y en GitHub Actions.
+fast-flights==3.1.0
+primp==2.0.1           # los perfiles de navegador (chrome_146, edge_145…) dependen de esta versión
+typing_extensions>=4.12  # fast_flights lo usa y no lo declara
+pyyaml>=6
+ruamel.yaml>=0.18      # edita config.yaml desde la web sin perder los comentarios
+cryptography>=42     # cifra data/suscriptores.json (repo público) con VUELOS_CLAVE

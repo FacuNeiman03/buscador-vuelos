@@ -1,0 +1,15 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+logs/
+data/.corriendo.lock
+*.tmp
+.env
+_to_delete/
+# El historial y los reportes viven en la rama "datos" (la escribe GitHub Actions), no en main
+data/historial.db
+data/estado.json
+data/*.bajando
+reportes/

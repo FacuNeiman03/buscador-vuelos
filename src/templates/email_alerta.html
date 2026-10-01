@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>$asunto</title>
+<style>
+  @media only screen and (max-width:600px){
+    .contenedor{width:100% !important;border-radius:0 !important}
+    .pad{padding:20px 16px !important}
+    .col{display:block !important;width:100% !important;padding:0 0 12px 0 !important}
+    .precio{font-size:34px !important}
+  }
+</style>
+</head>
+<body style="margin:0;padding:0;background:#f4f3ef;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#0b0b0b">
+<span style="display:none;max-height:0;overflow:hidden;opacity:0">$preheader</span>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f3ef">
+<tr><td align="center" style="padding:24px 8px">
+  <table role="presentation" class="contenedor" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:600px;background:#ffffff;border-radius:14px;border:1px solid #e3e1da;overflow:hidden">
+    <tr><td class="pad" style="background:$color;padding:22px 28px;color:#ffffff">
+      <div style="font-size:13px;letter-spacing:.06em;text-transform:uppercase;opacity:.9">$etiqueta</div>
+      <div style="font-size:22px;font-weight:700;margin-top:4px">$titulo</div>
+      <div style="font-size:14px;opacity:.9;margin-top:2px">$ruta</div>
+    </td></tr>
+
+    <tr><td class="pad" style="padding:24px 28px 8px">
+      <div style="font-size:13px;color:#52514e">Precio por persona ($tipo_viaje)</div>
+      <div class="precio" style="font-size:40px;font-weight:750;line-height:1.1;margin:2px 0 6px">$precio</div>
+      <div style="font-size:15px;color:#0a7d35;font-weight:600">$ahorro_linea</div>
+    </td></tr>
+
+    <tr><td class="pad" style="padding:12px 28px">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td class="col" width="50%" valign="top" style="padding-right:8px">
+            <div style="background:#f4f3ef;border-radius:10px;padding:12px 14px">
+              <div style="font-size:12px;color:#52514e;text-transform:uppercase">Fechas</div>
+              <div style="font-size:16px;font-weight:600;margin-top:2px">$fechas</div>
+              <div style="font-size:13px;color:#52514e">$dias</div>
+            </div>
+          </td>
+          <td class="col" width="50%" valign="top" style="padding-left:8px">
+            <div style="background:#f4f3ef;border-radius:10px;padding:12px 14px">
+              <div style="font-size:12px;color:#52514e;text-transform:uppercase">Vuelo de ida</div>
+              <div style="font-size:16px;font-weight:600;margin-top:2px">$aerolineas</div>
+              <div style="font-size:13px;color:#52514e">$escalas · $duracion<br>$itinerario</div>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+
+    <tr><td class="pad" style="padding:8px 28px 4px">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;border-collapse:collapse">
+        $filas_comparativa
+      </table>
+    </td></tr>
+
+    <tr><td class="pad" align="center" style="padding:22px 28px 8px">
+      <a href="$link" target="_blank" style="display:inline-block;background:#2a78d6;color:#ffffff;text-decoration:none;font-weight:700;font-size:16px;padding:14px 28px;border-radius:10px">$boton</a>
+      $link_reporte
+    </td></tr>
+
+    <tr><td class="pad" style="padding:18px 28px 24px;font-size:12px;color:#8a8984;line-height:1.5">
+      Precio total para $pasajeros pasajero(s): <b>$total</b>. Los precios cambian rápido: verificá en el link antes de comprar.<br>
+      Recibís este aviso porque bajó el precio o mejoraron las condiciones respecto de lo que ya habíamos visto; si no cambia nada, no te escribimos.
+      $baja
+    </td></tr>
+  </table>
+</td></tr>
+</table>
+</body>
+</html>

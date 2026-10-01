@@ -1,0 +1,37 @@
+# Blueprint de Render (plan gratuito). Render -> New -> Blueprint -> elegí este repo.
+# La web NO busca: dispara la búsqueda en GitHub Actions y baja los resultados de la rama "datos".
+services:
+  - type: web
+    name: buscador-vuelos
+    runtime: python
+    plan: free
+    autoDeploy: true
+    buildCommand: pip install -r requirements-web.txt
+    # --proxy-headers: detrás del proxy de Render, request.client.host es la IP real (límite anti-spam por IP)
+    startCommand: uvicorn src.web.app:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips="*"
+    healthCheckPath: /api/salud
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: TZ
+        value: America/Argentina/Buenos_Aires
+      - key: VUELOS_EJECUCION       # las búsquedas corren en GitHub Actions, no en Render
+        value: github
+      - key: WEB_ADMIN_TOKEN        # protege crear/editar/borrar/buscar (se genera solo; lo ves en el panel)
+        generateValue: true
+      - key: GITHUB_REPOSITORY      # usuario/repo
+        value: FacuNeiman03/buscador-vuelos
+      - key: GITHUB_TOKEN           # fine-grained: Contents + Actions (Read and write) solo sobre este repo
+        sync: false
+      - key: VUELOS_CLAVE           # la MISMA que el secreto VUELOS_CLAVE de GitHub (cifra los suscriptores)
+        sync: false
+      - key: SMTP_HOST              # mail de confirmación de suscripciones (las alertas salen de GitHub Actions)
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: VUELOS_URL_WEB         # ej: https://buscador-vuelos.onrender.com
+        sync: false

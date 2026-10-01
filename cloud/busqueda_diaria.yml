@@ -1,0 +1,134 @@
+name: Búsqueda de vuelos
+
+# Corre cada hora, pero solo busca las búsquedas a las que les toca (su 'hora', su ventana
+# buscar_desde/buscar_hasta, y que hoy no hayan corrido). Si no toca nada, termina en segundos.
+# La web (Render) también la dispara a pedido con el botón "Actualizar" (workflow_dispatch).
+on:
+  schedule:
+    - cron: "17 * * * *"          # minuto 17: a la hora en punto GitHub suele demorar los cron
+  workflow_dispatch:
+    inputs:
+      busqueda:
+        description: "Nombre de UNA búsqueda (vacío = todas las activas)"
+        required: false
+        default: ""
+      proveedor:
+        description: "De dónde sacar precios"
+        type: choice
+        options: [config, auto, fast_flights, serpapi]
+        default: config
+
+permissions:
+  contents: write     # guarda historial.db y reportes en la rama "datos"
+
+concurrency:
+  group: busqueda-vuelos
+  cancel-in-progress: false
+
+env:
+  TZ: America/Argentina/Buenos_Aires
+
+jobs:
+  buscar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Recuperar historial (rama "datos")
+        run: |
+          # El historial vive en una rama aparte que se PISA en cada corrida (un solo commit),
+          # así el repo no crece con una copia de la base por día.
+          if git fetch --depth=1 origin datos 2>/dev/null; then
+            mkdir -p data reportes
+            git archive FETCH_HEAD | tar -x   # la rama solo tiene data/ y reportes/
+            echo "Historial restaurado"
+          else
+            echo "Todavía no hay rama datos: primera corrida"
+          fi
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: ¿Toca buscar algo ahora?
+        id: decidir
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "hay=true" >> "$GITHUB_OUTPUT"; echo "Pedido manual desde la web"
+          else
+            pip install -q pyyaml
+            python -m src.core.programacion
+          fi
+
+      - name: Mantener vivo el cron
+        if: github.event_name == 'schedule'
+        run: |
+          # GitHub pausa los cron de repos sin commits en 60 días. Si main lleva 45 días quieto,
+          # un commit vacío lo mantiene vivo ([skip render] = Render no redespliega por esto).
+          ultimo=$(git log -1 --format=%ct)
+          if [ $(( $(date +%s) - ultimo )) -gt $(( 45*86400 )) ]; then
+            git config user.name  "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit --allow-empty -q -m "Mantener activo el cron [skip ci] [skip render]"
+            git push -q origin HEAD:${GITHUB_REF_NAME} && echo "Commit de mantenimiento hecho"
+          fi
+
+      - name: Instalar dependencias
+        if: steps.decidir.outputs.hay == 'true'
+        run: pip install -r requirements.txt
+
+      - name: Buscar precios, generar reportes y enviar alertas
+        if: steps.decidir.outputs.hay == 'true'
+        env:
+          SERPAPI_API_KEY: ${{ secrets.SERPAPI_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_FROM: ${{ secrets.RESEND_FROM }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+          ALERTA_EMAILS: ${{ secrets.ALERTA_EMAILS }}
+          VUELOS_CLAVE: ${{ secrets.VUELOS_CLAVE }}
+          VUELOS_PROXY: ${{ secrets.VUELOS_PROXY }}
+          VUELOS_URL_REPORTE: ${{ vars.VUELOS_URL_WEB }}
+          VUELOS_URL_WEB: ${{ vars.VUELOS_URL_WEB }}
+          VUELOS_MAX_CONSULTAS: ${{ vars.VUELOS_MAX_CONSULTAS }}
+          # IPs de datacenter: Google es más estricto; por defecto va prudente (se puede cambiar con la variable)
+          VUELOS_VELOCIDAD: ${{ vars.VUELOS_VELOCIDAD || 'prudente' }}
+          # los inputs se pasan por variables de entorno (nunca interpolados en el script: evita inyección)
+          EVENTO: ${{ github.event_name }}
+          IN_BUSQUEDA: ${{ inputs.busqueda }}
+          IN_PROVEEDOR: ${{ inputs.proveedor }}
+        run: |
+          args=(--no-abrir)
+          if [ "$EVENTO" = "schedule" ]; then
+            args+=(--programado)
+          else
+            args+=(--forzar)
+            [ -n "$IN_BUSQUEDA" ] && args+=(--busqueda "$IN_BUSQUEDA")
+          fi
+          [ -n "$IN_PROVEEDOR" ] && [ "$IN_PROVEEDOR" != "config" ] && args+=(--proveedor "$IN_PROVEEDOR")
+          python -m src.main "${args[@]}"
+
+      - name: Guardar historial y reportes (rama "datos", se pisa cada vez)
+        if: always() && steps.decidir.outputs.hay == 'true'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -q --orphan datos-tmp
+          git rm -rfq --cached . 2>/dev/null || true
+          for f in data/historial.db data/estado.json reportes; do [ -e "$f" ] && git add -f "$f"; done
+          if git diff --cached --quiet; then echo "Nada para guardar"; exit 0; fi
+          git commit -q -m "Datos $(date +'%Y-%m-%d %H:%M') [skip ci]"
+          git push -f origin datos-tmp:datos
+
+      - name: Subir log
+        if: always() && steps.decidir.outputs.hay == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: log-${{ github.run_id }}
+          path: logs/
+          retention-days: 14
+          if-no-files-found: ignore

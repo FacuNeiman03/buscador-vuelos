@@ -1,0 +1,77 @@
+# ============================================================
+#  BUSCADOR DE VUELOS - CONFIGURACIÓN
+#  Editá este archivo para cambiar o agregar búsquedas.
+#  Cada bloque bajo "busquedas:" es una búsqueda independiente.
+#  Para desactivar una sin borrarla: activa: false
+#  Para ver cuántas consultas va a hacer ANTES de correr:
+#      python src/main.py --simular
+# ============================================================
+
+general:
+  moneda: USD              # USD, ARS, EUR...
+  idioma: es
+  abrir_reporte: siempre   # siempre | si_hay_novedad | nunca  (en la nube nunca se abre)
+  una_vez_por_dia: true    # al prender la PC corre 1 sola vez por día
+  velocidad: normal        # rapida | normal | prudente (se adapta sola si Google se pone estricto)
+  max_consultas_por_corrida: 1200
+  hora: 6                  # hora (Argentina) a la que corren las búsquedas en la nube; cada búsqueda puede tener su propia "hora"
+
+  # De dónde se sacan los precios:
+  #   auto         -> Google Flights directo y, si Google bloquea y existe SERPAPI_API_KEY, sigue con SerpApi
+  #   fast_flights -> solo Google Flights directo (gratis, sin límite)
+  #   serpapi      -> solo SerpApi (sin bloqueos, pero con cupo mensual chico: ajustá bien las fechas)
+  proveedor: auto
+
+  # Link a la web (se agrega en los emails). En la nube sale de la variable VUELOS_URL_WEB.
+  url_reporte: ""
+
+  alertas:
+    activas: true
+    # Reciben TODAS las búsquedas. También se pueden sumar por variable de entorno ALERTA_EMAILS.
+    emails: []             # ej: [lucas@gmail.com]
+    # true = también avisa si el precio es el mismo pero hay menos escalas o el vuelo es más corto
+    avisar_mejores_condiciones: true
+    remitente: ""          # vacío = usa RESEND_FROM / SMTP_FROM
+
+busquedas:
+
+  - nombre: Cipolletti
+    activa: true
+    origenes: [AEP, EZE]   # Buenos Aires: Aeroparque y Ezeiza
+    destinos: [NQN]        # Cipolletti no tiene aeropuerto: Neuquén queda a ~20 min
+    tipo: ida_vuelta
+    estrategia: ida_vuelta # ida_vuelta = pasaje ida y vuelta clásico · mixta = también prueba 2 pasajes sueltos
+    pasajeros: 1
+    clase: economy
+    max_escalas: 1
+    max_duracion_horas: 8
+    viajar_desde: "2027-01-01"   # por trabajo solo se puede viajar entre enero y marzo:
+    viajar_hasta: "2027-03-31"   # la ida y la vuelta quedan dentro de este rango
+    duracion_dias: [7]     # CAMBIALO por los días que se quedan
+    paso_dias: 2           # 2 aeropuertos de salida = el doble de consultas, por eso de a 2 días
+    refinar_top: 6
+    tolerancia_dias: 5
+    ahorro_minimo_pct: 5
+    alerta_precio_persona: 150
+    equipaje: ninguno
+
+  - nombre: China
+    activa: true
+    origenes: [AEP, EZE]
+    # los 15 con más tráfico (antes eran 30 en orden alfabético y quedaban afuera Shanghái y Shenzhen)
+    destinos: [PEK, PKX, PVG, SHA, CAN, SZX, CTU, TFU, CKG, KMG, XIY, HGH, WUH, NKG, CSX]
+    destino_pais: CN
+    explorar_top: 3
+    tipo: ida_vuelta
+    pasajeros: 1
+    clase: economy
+    max_escalas:
+    viajar_desde: '2027-01-01'
+    viajar_hasta: '2027-03-31'
+    duracion_dias: [14]
+    estrategia: ida_vuelta
+    equipaje: ninguno
+    paso_dias: 1
+    refinar_top: 6
+    tolerancia_dias: 0
+    ahorro_minimo_pct: 5
