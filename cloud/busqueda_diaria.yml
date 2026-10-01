@@ -84,12 +84,12 @@ jobs:
           SERPAPI_API_KEY: ${{ secrets.SERPAPI_API_KEY }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           RESEND_FROM: ${{ secrets.RESEND_FROM }}
-          SMTP_HOST: ${{ secrets.SMTP_HOST }}
-          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST || 'smtp.gmail.com' }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT || '587' }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           SMTP_FROM: ${{ secrets.SMTP_FROM }}
-          ALERTA_EMAILS: ${{ secrets.ALERTA_EMAILS }}
+          ALERTA_EMAILS: ${{ secrets.ALERTA_EMAILS || secrets.SMTP_USER }}   # por defecto, a tu propio Gmail
           VUELOS_CLAVE: ${{ secrets.VUELOS_CLAVE }}
           VUELOS_PROXY: ${{ secrets.VUELOS_PROXY }}
           VUELOS_URL_REPORTE: ${{ vars.VUELOS_URL_WEB }}

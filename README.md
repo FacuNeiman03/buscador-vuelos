@@ -283,10 +283,10 @@ Google es más estricto con IPs de datacenter. Por eso en la nube va en velocida
 
 | Secreto | Valor |
 |---|---|
-| `SMTP_HOST` / `SMTP_PORT` | `smtp.gmail.com` / `587` |
+| `SMTP_HOST` / `SMTP_PORT` | opcionales: por defecto `smtp.gmail.com` / `587` |
 | `SMTP_USER` | tu Gmail |
 | `SMTP_PASSWORD` | contraseña de aplicación de Gmail (myaccount.google.com/apppasswords; requiere verificación en 2 pasos) |
-| `ALERTA_EMAILS` | quién recibe todas las alertas (separados por coma) |
+| `ALERTA_EMAILS` | opcional: quién recibe todas las alertas (separados por coma). Por defecto, `SMTP_USER` |
 | `VUELOS_CLAVE` | una frase larga cualquiera; cifra los emails de los suscriptores (el repo es público). La misma en Render |
 | `SERPAPI_API_KEY`, `VUELOS_PROXY` | opcionales |
 
