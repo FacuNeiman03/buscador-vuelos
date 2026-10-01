@@ -57,21 +57,25 @@ busquedas:
 
   - nombre: China
     activa: true
+    buscar_desde: '2027-01-01'
+    buscar_hasta: '2027-09-01'
+    hora: 1
     origenes: [AEP, EZE]
     # los 15 con más tráfico (antes eran 30 en orden alfabético y quedaban afuera Shanghái y Shenzhen)
     destinos: [PEK, PKX, PVG, SHA, CAN, SZX, CTU, TFU, CKG, KMG, XIY, HGH, WUH, NKG, CSX]
     destino_pais: CN
     explorar_top: 3
     tipo: ida_vuelta
-    pasajeros: 1
+    pasajeros: 2
     clase: economy
     max_escalas:
-    viajar_desde: '2027-01-01'
-    viajar_hasta: '2027-03-31'
+    viajar_desde: '2028-01-01'
+    viajar_hasta: '2028-12-31'
     duracion_dias: [14]
     estrategia: ida_vuelta
-    equipaje: ninguno
+    equipaje: despachado
     paso_dias: 1
     refinar_top: 6
     tolerancia_dias: 0
     ahorro_minimo_pct: 5
+    alerta_precio_persona: 2000
