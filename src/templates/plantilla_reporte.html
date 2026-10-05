@@ -1028,11 +1028,17 @@ function iniciarCarrusel(){
 }
 function nivelCard(b){
   const n = b.nivel_precio; if(!n) return "";
-  const cur = b.moneda, lo = n.minimo, hi = Math.max(n.hasta*1.02, Math.min(n.maximo, n.hasta + (n.hasta - lo)));
-  const pos = v => Math.max(0, Math.min(100, (v - lo) / (hi - lo) * 100));
+  // Escala por tramos como Google: barato 0-25%, habitual 25-75%, caro 75-100%. Los extremos tienen margen,
+  // así el precio más bajo visto no queda pegado al borde.
+  const cur = b.moneda, a = n.desde, z = n.hasta;
+  const lo = Math.min(n.minimo, n.actual), L = lo - Math.max(1, (a - lo) * 0.6);
+  const hi = Math.max(n.maximo, n.actual), H = hi + Math.max(1, (hi - z) * 0.15);
+  const pos = v => v <= a ? 25 * (v - L) / Math.max(1e-9, a - L)
+                 : v <= z ? 25 + 50 * (v - a) / Math.max(1e-9, z - a)
+                 : 75 + 25 * (v - z) / Math.max(1e-9, H - z);
   const txt = {bajo:"bajo", habitual:"habitual", alto:"alto"}[n.nivel];
   const dif = Math.abs(n.diferencia) >= 1 ? ` (${money(Math.abs(n.diferencia),cur)} ${n.diferencia>0?"más barato":"más caro"} de lo habitual)` : "";
-  const p = pos(n.actual), clamp = Math.max(12, Math.min(88, p));
+  const p = Math.max(1.5, Math.min(98.5, pos(n.actual)));
   return `<section class="card nivel" aria-label="Nivel del precio">
     <div><h3>${money(n.actual,cur)} es un precio <span class="${n.nivel}">${txt}</span>${dif}</h3>
       <p class="hint" style="margin:0">En esta búsqueda los precios suelen estar entre <b>${money(n.desde,cur)}</b> y <b>${money(n.hasta,cur)}</b> por persona.
@@ -1044,7 +1050,7 @@ function nivelCard(b){
       <span class="tick" style="left:${pos(n.desde)}%">${money(n.desde,cur)}</span>
       <span class="tick" style="left:${pos(n.hasta)}%">${money(n.hasta,cur)}</span>
       <span class="pin" style="left:${p}%"></span>
-      <span class="tip" style="left:${clamp}%">${money(n.actual,cur)} · ${txt}</span>
+      <span class="tip" style="left:clamp(56px, ${p}%, calc(100% - 56px))">${money(n.actual,cur)} · ${txt}</span>
     </div></section>`;
 }
 function kpis(b){
