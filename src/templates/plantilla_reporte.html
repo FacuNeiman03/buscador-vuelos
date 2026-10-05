@@ -1136,7 +1136,7 @@ function render(i){
   if(b.sin_datos){
     $("#contenido").innerHTML = cab + `${b.activa?"":banner("warn","pause","Búsqueda pausada: no se actualiza sola.")}
       <div class="card"><div class="empty"><span class="em-ico">${ico("search")}</span><h3>Todavía no hay precios</h3>
-        <p>Todavía no hay precios dentro de este rango de fechas. Tocá <b>Actualizar datos de este vuelo</b> o esperá la búsqueda diaria.</p></div></div>`;
+        <p>${b.con_historial?"Cambiaste la búsqueda (equipaje o fechas) y los precios guardados ya no corresponden: los nuevos aparecen después de la próxima búsqueda.":"Todavía no hay precios dentro de este rango de fechas."} Tocá <b>Actualizar datos de este vuelo</b> o esperá la búsqueda diaria.</p></div></div>`;
     return;
   }
   const avisos = [];

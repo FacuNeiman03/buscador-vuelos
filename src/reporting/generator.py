@@ -12,6 +12,7 @@ import os
 import sqlite3
 from pathlib import Path
 
+from ..core import database as db
 from ..core.config import AppConfig
 from ..core.paths import PLANTILLA_REPORTE, REPORTE_INDEX, REPORTES_DIR, reporte_busqueda, slug
 from ..core.config_editor import form_desde_meta
@@ -52,7 +53,10 @@ def recolectar(con: sqlite3.Connection, cfg: AppConfig) -> list[dict]:
     """
     datos = []
     for meta in sorted(cfg.busquedas, key=lambda b: not b["activa"]):
-        d = datos_busqueda(con, meta["nombre"], meta) or _sin_datos(meta)
+        d = datos_busqueda(con, meta["nombre"], meta)
+        if d is None:
+            d = _sin_datos(meta)
+            d["con_historial"] = bool(db.corridas_utiles(con, meta["nombre"]))
         d["slug"] = slug(meta["nombre"])
         d["rango"] = descripcion_rango(meta)
         d["config"] = form_desde_meta(meta)
