@@ -5,13 +5,20 @@ name: Búsqueda de vuelos
 # La web (Render) también la dispara a pedido con el botón "Actualizar" (workflow_dispatch).
 on:
   schedule:
-    - cron: "17 * * * *"          # minuto 17: a la hora en punto GitHub suele demorar los cron
+    # Dos veces por hora: GitHub demora o saltea muchos cron en repos chicos, así hay más chances.
+    # Para que sea puntual, un servicio externo (cron-job.org) puede dispararlo con modo=programado.
+    - cron: "7,37 * * * *"
   workflow_dispatch:
     inputs:
       busqueda:
         description: "Nombre de UNA búsqueda (vacío = todas las activas)"
         required: false
         default: ""
+      modo:
+        description: "manual = buscar ya · programado = solo lo que toca a esta hora (para cron externo)"
+        type: choice
+        options: [manual, programado]
+        default: manual
       proveedor:
         description: "De dónde sacar precios"
         type: choice
@@ -54,7 +61,7 @@ jobs:
       - name: ¿Toca buscar algo ahora?
         id: decidir
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.modo }}" != "programado" ]; then
             echo "hay=true" >> "$GITHUB_OUTPUT"; echo "Pedido manual desde la web"
           else
             pip install -q pyyaml
@@ -62,7 +69,7 @@ jobs:
           fi
 
       - name: Mantener vivo el cron
-        if: github.event_name == 'schedule'
+        if: github.event_name == 'schedule' || inputs.modo == 'programado'
         run: |
           # GitHub pausa los cron de repos sin commits en 60 días. Si main lleva 45 días quieto,
           # un commit vacío lo mantiene vivo ([skip render] = Render no redespliega por esto).
@@ -125,10 +132,11 @@ jobs:
           # los inputs se pasan por variables de entorno (nunca interpolados en el script: evita inyección)
           EVENTO: ${{ github.event_name }}
           IN_BUSQUEDA: ${{ inputs.busqueda }}
+          IN_MODO: ${{ inputs.modo }}
           IN_PROVEEDOR: ${{ inputs.proveedor }}
         run: |
           args=(--no-abrir)
-          if [ "$EVENTO" = "schedule" ]; then
+          if [ "$EVENTO" = "schedule" ] || [ "$IN_MODO" = "programado" ]; then
             args+=(--programado)
           else
             args+=(--forzar)
