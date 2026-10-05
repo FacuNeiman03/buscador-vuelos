@@ -800,6 +800,10 @@ function tituloTramos(c){
   const t = (c.detalle && c.detalle.tramos) || [];
   return t.map(x => `${x.sentido==="ida"?"Ida":"Vuelta"} ${x.origen}→${x.destino} ${x.fecha} ${(x.salida||"").slice(11)} · ${x.aerolineas}`).join("\n");
 }
+/* Horarios de salida: la vuelta de un ida y vuelta es aproximada (Google la confirma al elegirla) */
+const TIT_VTA = "Horario del vuelo de vuelta de la misma aerolínea ese día. En un ida y vuelta Google lo confirma recién al elegir la vuelta.";
+const horaIda = c => c.ida_hora ? esc(c.ida_hora) : '<span class="muted">—</span>';
+const horaVta = c => c.vta_hora ? `<span${c.vta_aprox?` title="${TIT_VTA}"`:""}>${esc(c.vta_hora)}${c.vta_aprox?'<span class="muted">*</span>':""}</span>` : '<span class="muted">—</span>';
 const verLink = (url, txt="Ver") => `<a class="vlink" href="${esc(url)}" target="_blank" rel="noopener">${txt}${ico("ext")}</a>`;
 function linksTramos(c, pax, cur){
   const t = (c.detalle && c.detalle.tramos) || [];
@@ -826,6 +830,8 @@ function tabla(lista, b, conMes){
     eq && {h:"Sin equipaje", tipo:"num", num:true, cell:c => ({html:c.sin_equipaje!=null?`${money(c.sin_equipaje,b.moneda)} <span class="sub">(+${money(c.precio-c.sin_equipaje,b.moneda)})</span>`:'<span class="muted">—</span>', v:c.sin_equipaje??""})},
     {h:"vs anterior", tipo:"num", num:true, cell:c => ({html:delta(c.precio,c.previo,b.moneda), v:c.previo!=null?c.precio-c.previo:""})},
     {h:"Aerolíneas", tipo:"text", wrap:true, cell:c => ({html:esc(c.aerolineas)})},
+    {h:"Sale ida", tipo:"text", cell:c => ({html:horaIda(c), v:c.ida_hora||""})},
+    b.ida_vuelta && {h:"Sale vuelta", tipo:"text", cell:c => ({html:horaVta(c), v:c.vta_hora||""})},
     {h:"Escalas", tipo:"num", num:true, cell:c => ({html:c.escalas, v:c.escalas})},
     {h:"Duración ida", tipo:"dur", cell:c => ({html:esc(c.duracion_txt), v:c.duracion_min||""})},
     {h:"Ruta ida", tipo:"text", full:true, cell:c => ({html:`<span title="${esc(c.detalle?tituloTramos(c):c.ruta)}">${esc(c.ruta)}</span>`, v:c.ruta||""})},
@@ -838,10 +844,13 @@ function tablaOfertas(lista, b){
     {h:"Ida", tipo:"date", lead:true, cell:o => ({html:fd(o.ida), v:o.ida})},
     {h:"Vuelta", tipo:"date", cell:o => ({html:fd(o.vuelta), v:o.vuelta})},
     {h:"Días", tipo:"num", num:true, cell:o => ({html:`<b>${o.dias}</b>`, v:o.dias})},
+    {h:"Sale ida", tipo:"text", cell:o => ({html:horaIda(o), v:o.ida_hora||""})},
+    {h:"Sale vuelta", tipo:"text", cell:o => ({html:horaVta(o), v:o.vta_hora||""})},
     {h:"Precio x persona", tipo:"num", num:true, price:true, cell:o => ({html:`<b>${money(o.precio,b.moneda)}</b>`, v:o.precio})},
     {h:"Ahorro", tipo:"num", num:true, cell:o => ({html:`<span class="down">▼ ${money(o.ahorro,b.moneda)} (${o.ahorro_pct}%)</span>`, v:o.ahorro})},
-    {h:"Comparado con", full:true, cell:o => ({html:`<span class="sub">${money(o.ref_precio,b.moneda)} · ${fd(o.ref_ida)} → ${fd(o.ref_vuelta)}</span>`})},
+    {h:"Comparado con", full:true, cell:o => ({html:`<span class="sub" title="${esc(`${o.ref_dias??"?"} días: ${fd(o.ref_ida)} → ${fd(o.ref_vuelta)}`)}">${money(o.ref_precio,b.moneda)} · ${o.ref_dias??"?"} días${o.ref_mismo_dia?"":" (sale "+fd(o.ref_ida)+")"}</span>`})},
     {h:"Aerolíneas", tipo:"text", cell:o => ({html:esc(o.aerolineas)})},
+    {h:"Ruta", tipo:"text", cell:o => ({html:`${esc(o.origen)} ⇄ ${esc(o.destino)}`, v:o.origen})},
     {h:"Escalas", tipo:"num", num:true, cell:o => ({html:o.escalas, v:o.escalas})},
     {h:"", links:true, cell:o => ({html:verLink(o.link)})},
   ];
@@ -903,6 +912,7 @@ function slideOpcion(m, b, i, n){
       <div class="leg days"><span class="k">Días</span><span class="d">${m.dias??"-"}</span></div>`:""}
     </div>
     <div class="facts"><span>${ico("plane")}${esc(m.aerolineas)}</span><span>${ico("stops")}${escalasTxt(m.escalas)}</span><span>${ico("clock")}${esc(m.duracion_txt)}</span>
+      ${m.ida_hora?`<span>Sale ${esc(m.ida_hora)}${m.vuelta?` · vuelta ${m.vta_hora?esc(m.vta_hora)+(m.vta_aprox?`<span class="muted" title="${TIT_VTA}">*</span>`:""):"—"}`:""}</span>`:""}
       ${m.sin_equipaje!=null?`<span class="muted">sin equipaje: ${money(m.sin_equipaje,cur)}</span>`:""}</div>
     <div class="best-foot">${separados
       ? `<div class="legs">${tramos.map(x => `<div class="legrow"><span class="lk">${x.sentido==="ida"?"Ida":"Vuelta"}</span>
@@ -1015,13 +1025,17 @@ function kpis(b){
       : `<span class="v ${d<0?"down":"up"}">${d<0?"▼":"▲"} ${money(Math.abs(d),cur)}</span>
          <span class="d"><span class="chip ${d<0?"down":"up"}">${d<0?"−":"+"}${pct.toFixed(1).replace(".",",")}%</span> vs ${money(b.prev_best,cur)}</span>`;
   }
-  const esHist = hm && m.precio <= hm.precio + 0.5;
+  const hp = b.hist_prev;   // mínimo ANTES de esta corrida
+  const histTxt = !hm ? "" : !hp ? "primera corrida"
+    : m.precio < hp.precio - 0.5 ? '<span class="chip down">¡nuevo mínimo hoy!</span>'
+    : m.precio <= hp.precio + 0.5 ? `<span class="chip down">hoy igualó el mínimo</span> visto ${esc(hp.consultado.slice(0,10))}`
+    : fd(hm.ida)+(hm.vuelta?" → "+fd(hm.vuelta):"")+" · visto "+esc(hm.consultado.slice(0,10));
   return `<div class="kpis">
     <div class="kpi"><span class="label">Precio máximo</span><span class="v">${money(s.maximo,cur)}</span><span class="d">la fecha más cara de ${s.n} combinaciones</span></div>
     <div class="kpi"><span class="label">Precio promedio</span><span class="v">${money(s.promedio,cur)}</span>
       <span class="d">${b.ahorro_vs_promedio>0?`la mejor ahorra <b class="down">${money(b.ahorro_vs_promedio,cur)}</b>`:tipo}</span></div>
     <div class="kpi"><span class="label">Mínimo histórico</span><span class="v">${hm?money(hm.precio,cur):"—"}</span>
-      <span class="d">${hm?(esHist?'<span class="chip down">¡es el de hoy!</span>':fd(hm.ida)+(hm.vuelta?" → "+fd(hm.vuelta):"")+" · visto "+esc(hm.consultado.slice(0,10))):""}</span></div>
+      <span class="d">${histTxt}</span></div>
     <div class="kpi"><span class="label">vs corrida anterior</span>${vsAnt}</div>
     ${mf?`<div class="kpi flex wide"><span class="label">Cambiando días</span><span class="v">${money(mf.precio,cur)}</span>
       <span class="d">${fd(mf.ida)} → ${fd(mf.vuelta)} · ${mf.dias} días</span></div>`:""}
@@ -1102,9 +1116,9 @@ function render(i){
     <div class="legend" aria-hidden="true"><span><i style="border-color:var(--accent)"></i>Más barato</span>${b.alerta?`<span><i class="dash" style="border-color:var(--good)"></i>Alerta</span>`:""}</div></div>
     <div class="chart"><canvas id="c1" role="img" aria-label="Gráfico del precio más barato por fecha de salida"></canvas></div></section>
   ${b.ofertas.length?`<section class="card" aria-labelledby="hOf"><div class="card-h"><div><h3 id="hOf">Ofertas cambiando unos días</h3>
-    <p class="hint">Salir o volver unos días antes o después sale más barato que la mejor opción de ${durTxt} saliendo en fechas cercanas.</p></div></div>${tablaOfertas(b.ofertas,b)}</section>`:""}
+    <p class="hint">Viajes de otra duración que salen más baratos que el de ${durTxt} que sale el mismo día. * Horario de vuelta aproximado (pasá el mouse).</p></div></div>${tablaOfertas(b.ofertas,b)}</section>`:""}
   <section class="card" aria-labelledby="hMes"><div class="card-h"><div><h3 id="hMes">Mejor opción por mes</h3><p class="hint">Para comparar distintos momentos del año${durTxt?" · "+durTxt:""}.</p></div></div>${tabla(b.por_mes,b,true)}</section>
-  <section class="card" aria-labelledby="hTop"><div class="card-h"><div><h3 id="hTop">Top ${b.top.length} más baratas</h3><p class="hint">${durTxt?durTxt+" · ":""}${b.consultas} consultas en la última corrida · ${plural(b.corridas,"corrida")} guardada${b.corridas==1?"":"s"}.</p></div></div>${tabla(b.top,b,false)}</section>
+  <section class="card" aria-labelledby="hTop"><div class="card-h"><div><h3 id="hTop">Top ${b.top.length} más baratas</h3><p class="hint">${durTxt?durTxt+" · ":""}${b.consultas} consultas en la última corrida · ${plural(b.corridas,"corrida")} guardada${b.corridas==1?"":"s"}. Precios del ${esc(b.actualizado||"")}: en Google pueden haber cambiado desde entonces.${b.ida_vuelta?" * Horario de vuelta aproximado.":""}</p></div></div>${tabla(b.top,b,false)}</section>
   <section class="card" aria-labelledby="hEvo"><div class="card-h"><div><h3 id="hEvo">Evolución del precio</h3><p class="hint">Mínimo, promedio y máximo por persona encontrados en cada corrida.</p></div>
     ${b.evolucion.length>=2?`<div class="legend" aria-hidden="true"><span><i style="border-color:var(--accent)"></i>Mínimo</span><span><i class="dash" style="border-color:var(--text-3)"></i>Promedio</span><span><i style="border-color:var(--bad)"></i>Máximo</span></div>`:""}</div>
     ${b.evolucion.length>=2?'<div class="chart"><canvas id="c2" role="img" aria-label="Gráfico de evolución del precio por corrida"></canvas></div>':'<div class="soft-empty">Aparece a partir de la segunda corrida.</div>'}</section>`;

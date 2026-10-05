@@ -62,7 +62,7 @@ def test_api_busquedas(monkeypatch):
          "dias_min": 5, "dias_max": 6, "buscar_ahora": True, "estrategia": "ida_vuelta"}
     with cliente() as c:
         est = c.post("/api/busquedas/estimar", json=f).json()
-        assert est["rutas"] == 2 and est["consultas"] == est["combinaciones"] * 2
+        assert est["rutas"] == 2 and est["consultas"] == est["combinaciones"] * 2 + est["horarios_vuelta"]
         assert c.post("/api/busquedas", json={**f, "destinos": []}).status_code == 422
         r = c.post("/api/busquedas", json=f)
         assert r.status_code == 201 and r.json()["buscando"] and lanzadas == ["Web"]

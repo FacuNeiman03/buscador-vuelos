@@ -96,6 +96,9 @@ def _validar_general(g: dict, err: list[str]) -> dict:
     out = {
         "moneda": str(g.get("moneda", "USD")).upper(),
         "idioma": str(g.get("idioma", "es")),
+        # País desde el que "consulta" Google (punto de venta). Sin esto Google usa el país de la IP:
+        # desde GitHub Actions (EE.UU.) los precios salen distintos a los que ves vos en Argentina.
+        "pais": str(g.get("pais", "AR")).upper(),
         "abrir_reporte": g.get("abrir_reporte", "siempre"),
         "una_vez_por_dia": bool(g.get("una_vez_por_dia", True)),
         "pausa_segundos": g.get("pausa_segundos", [2, 5]),

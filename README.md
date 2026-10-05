@@ -81,6 +81,7 @@ Indentación con **espacios** (nunca tabs). Lo que va después de `#` es comenta
 |---|---|---|
 | `moneda` | `USD`, `ARS`, `EUR`… | Moneda de los precios |
 | `idioma` | `es` | Idioma de Google Flights |
+| `pais` | `AR` | País desde el que se cotiza (`gl` de Google). Sin esto, desde la nube Google cotiza como si buscaras desde EE.UU. y los precios no coinciden con los tuyos |
 | `abrir_reporte` | `siempre` / `si_hay_novedad` / `nunca` | Cuándo abrir el reporte al terminar (en la nube nunca) |
 | `una_vez_por_dia` | `true` / `false` | Aunque prendas la PC varias veces, corre una sola vez por día |
 | `velocidad` | `rapida` / `normal` / `prudente` | Ritmo de consultas (ver abajo). Opcionales: `concurrencia` (1-8) e `intervalo_min` (segundos) |
@@ -118,6 +119,7 @@ Indentación con **espacios** (nunca tabs). Lo que va después de `#` es comenta
 | `ocultar_autotransferencia` | `true` / `false` | Saca pasajes separados donde re-despachás vos |
 | `alerta_precio_persona` | `150` | Marca en verde lo que esté por debajo |
 | `tolerancia_dias` / `ahorro_minimo_pct` | `2` / `5` | Ofertas cambiando unos días |
+| `horarios_vuelta_top` | `40` | El ida y vuelta de Google solo trae la hora de la ida: para las N mejores opciones consulta el solo ida de regreso y muestra la hora del vuelo de vuelta de la misma aerolínea (aproximada, marcada con *). `0` = no consultar |
 | `emails` | `[amigo@mail.com]` | Alertas solo de esta búsqueda |
 
 ### 3.3 Fechas: control preciso

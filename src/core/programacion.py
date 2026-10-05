@@ -67,11 +67,11 @@ def proxima_ejecucion(b: dict, ahora: dt.datetime | None = None) -> str | None:
     elif ahora.hour >= b["hora"]:
         buenas, intentos = _corridas_de_hoy(b["nombre"], dia)
         if not buenas and intentos < MAX_INTENTOS_DIA and not (b.get("buscar_hasta") and dia > b["buscar_hasta"]):
-            return "en la próxima hora"
+            return "en las próximas horas"
         dia += dt.timedelta(days=1)
     if b.get("buscar_hasta") and dia > b["buscar_hasta"]:
         return None
-    return f"{dia:%d/%m/%Y} {b['hora']:02d}:00"
+    return f"{dia:%d/%m/%Y}" + (f" desde las {b['hora']:02d}:00" if b["hora"] else "")
 
 
 def main() -> int:

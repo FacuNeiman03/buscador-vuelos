@@ -17,7 +17,7 @@ from typing import Iterator
 from .paths import DB_PATH
 
 COMPLETA, PARCIAL = 1, 2
-ESQUEMA_VERSION = 4
+ESQUEMA_VERSION = 5
 
 
 def _ahora() -> str:
@@ -68,6 +68,15 @@ def _migrar(con: sqlite3.Connection) -> None:
         for col, decl in (("tipo", "TEXT DEFAULT 'ida_vuelta'"), ("equipaje", "INT DEFAULT 0"), ("detalle", "TEXT")):
             if col not in cols:
                 con.execute(f"ALTER TABLE precios ADD COLUMN {col} {decl}")
+    if version < 5:
+        # Horarios de los vuelos de VUELTA: el ida y vuelta de Google solo trae el tramo de ida; para las
+        # mejores opciones se consulta el solo ida de regreso y se guardan acá sus horarios.
+        con.executescript("""
+        CREATE TABLE IF NOT EXISTS vueltas(
+            corrida_id INT, origen TEXT, destino TEXT, fecha TEXT, aerolineas TEXT, salida TEXT, llegada TEXT,
+            escalas INT, duracion_min INT, precio REAL, orden INT);
+        CREATE INDEX IF NOT EXISTS ix_vueltas ON vueltas(corrida_id);
+        """)
     con.execute(f"PRAGMA user_version = {ESQUEMA_VERSION}")
     con.commit()
 
@@ -146,6 +155,24 @@ def guardar_exploracion(con: sqlite3.Connection, corrida_id: int, busqueda: str,
         (corrida_id, busqueda, consultado, origen, destino, ida.isoformat(), vuelta.isoformat() if vuelta else None,
          opcion["precio"], pasajeros, moneda, opcion["aerolineas"], opcion["escalas"], link))
     con.commit()
+
+
+def guardar_vueltas(con: sqlite3.Connection, corrida_id: int, origen: str, destino: str, fecha: dt.date,
+                    opciones: list[dict]) -> None:
+    con.executemany(
+        "INSERT INTO vueltas(corrida_id, origen, destino, fecha, aerolineas, salida, llegada, escalas, duracion_min, "
+        "precio, orden) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+        [(corrida_id, origen, destino, fecha.isoformat(), o["aerolineas"], o.get("salida"), o.get("llegada"),
+          o.get("escalas"), o.get("duracion_min"), o.get("precio"), i) for i, o in enumerate(opciones)])
+    con.commit()
+
+
+def vueltas_corrida(con: sqlite3.Connection, corrida_id: int) -> dict:
+    """{(origen, destino, fecha): [opciones de solo ida en el orden de Google]}"""
+    out: dict = {}
+    for r in con.execute("SELECT * FROM vueltas WHERE corrida_id=? ORDER BY orden", (corrida_id,)):
+        out.setdefault((r["origen"], r["destino"], r["fecha"]), []).append(dict(r))
+    return out
 
 
 def marcar_elegidos(con: sqlite3.Connection, corrida_id: int, destinos: list[str]) -> None:
@@ -247,6 +274,8 @@ def compactar(con: sqlite3.Connection, dias: int = 14) -> int:
             WHERE c.inicio < ? AND c.fin IS NOT NULL)
           WHERE rn > 1)""", (limite,))
     borradas = cur.rowcount or 0
+    con.execute("DELETE FROM vueltas WHERE corrida_id IN (SELECT id FROM corridas WHERE inicio < ? AND fin IS NOT NULL)",
+                (limite,))   # los horarios de vuelta solo se muestran de la última corrida
     con.commit()
     if borradas >= 2000:
         con.execute("VACUUM")   # devuelve el espacio al disco (el archivo .db se achica)

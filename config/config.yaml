@@ -10,6 +10,7 @@
 general:
   moneda: USD              # USD, ARS, EUR...
   idioma: es
+  pais: AR                 # país desde el que se cotiza (como si buscaras desde Argentina, aunque corra en la nube)
   abrir_reporte: siempre   # siempre | si_hay_novedad | nunca  (en la nube nunca se abre)
   una_vez_por_dia: true    # al prender la PC corre 1 sola vez por día
   velocidad: normal        # rapida | normal | prudente (se adapta sola si Google se pone estricto)

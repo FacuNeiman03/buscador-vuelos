@@ -48,6 +48,41 @@ def _normalizar(filas: list[dict]) -> list[dict]:
     return filas
 
 
+def _hhmm(s: str | None) -> str | None:
+    return s[11:16] if s and len(s) >= 16 else None
+
+
+def _aerolineas(txt: str | None) -> set[str]:
+    return {a.strip().lower() for a in (txt or "").split(",") if a.strip()}
+
+
+def agregar_horarios(con: sqlite3.Connection, corrida_id: int, filas: list[dict]) -> None:
+    """Agrega a cada fila la hora de salida de la ida (ida_hora) y de la vuelta (vta_hora).
+
+    Pasajes armados con varios tramos: horarios exactos de cada tramo. Ida y vuelta de Google: Google
+    solo informa la ida, así que la vuelta sale de la consulta de solo ida de regreso (tabla vueltas):
+    el vuelo de la misma aerolínea ese día (vta_aprox = True: Google lo confirma al elegir la vuelta)."""
+    vtas = db.vueltas_corrida(con, corrida_id)
+    for f in filas:
+        f["ida_hora"], f["vta_hora"], f["vta_aerolinea"], f["vta_aprox"] = _hhmm(f.get("salida")), None, None, False
+        tramos = (f.get("detalle") or {}).get("tramos") or []
+        if tramos:
+            ida = [t for t in tramos if t.get("sentido") == "ida"]
+            vta = [t for t in tramos if t.get("sentido") == "vuelta"]
+            if ida:
+                f["ida_hora"] = _hhmm(ida[0].get("salida")) or f["ida_hora"]
+            if vta:
+                f["vta_hora"], f["vta_aerolinea"] = _hhmm(vta[0].get("salida")), vta[0].get("aerolineas")
+            continue
+        if not f.get("vuelta"):
+            continue
+        aer = _aerolineas(f.get("aerolineas"))
+        for o in vtas.get((f["destino"], f["origen"], f["vuelta"]), []):   # en orden de precio
+            if aer & _aerolineas(o["aerolineas"]):
+                f["vta_hora"], f["vta_aerolinea"], f["vta_aprox"] = _hhmm(o["salida"]), o["aerolineas"], True
+                break
+
+
 def mejores_por_combo(filas: list[dict]) -> tuple[list[dict], list[dict]]:
     """(base, flexibles): la opción más barata de cada combinación, ordenadas por precio."""
     por_combo: dict = {}
@@ -123,6 +158,7 @@ def datos_busqueda(con: sqlite3.Connection, nombre: str, meta: dict | None) -> d
     pax = int(b.get("pasajeros", 1))
     ida_vuelta = b.get("tipo", "ida_vuelta") == "ida_vuelta"
 
+    agregar_horarios(con, ult["id"], filas)
     base, flex = mejores_por_combo(filas)
     if not base:          # solo hubo variantes flexibles: se usan como base
         base, flex = flex, []
@@ -160,21 +196,38 @@ def datos_busqueda(con: sqlite3.Connection, nombre: str, meta: dict | None) -> d
 
     stats = estadisticas([c["precio"] for c in base])
     hist = db.minimo_historico(con, nombre, filtro=filtro)
+    hist_prev = db.minimo_historico(con, nombre, antes_de_corrida=ult["id"], filtro=filtro)
     mejor = base[0]
     prev_best = prev_stats["minimo"] if prev_stats else None
 
-    # --- ofertas cambiando días: comparadas con la mejor opción "normal" saliendo ±3 días ---
+    # --- ofertas cambiando días: cada una se compara con el viaje de la duración pedida que sale EL MISMO
+    #     DÍA (si no se consultó ese día, con el de la salida más cercana). Una fila por fechas (se queda con
+    #     el aeropuerto más barato), así no aparece repetida por EZE y AEP.
     ahorro_min = float(b.get("ahorro_minimo_pct", 5) or 0) / 100
-    ofertas = []
+    por_salida: dict = {}
+    for c in base:   # base viene ordenada por precio: queda la más barata de cada día de salida
+        por_salida.setdefault((c["ida"], c["destino"]), c)
+    ofertas, vistas = [], set()
     for f in flex:
-        fi = dt.date.fromisoformat(f["ida"])
-        cerca = [c for c in base if abs((dt.date.fromisoformat(c["ida"]) - fi).days) <= 3]
-        ref = min(cerca, key=lambda c: c["precio"]) if cerca else mejor
+        k = (f["ida"], f["vuelta"], f["destino"])
+        if k in vistas:
+            continue
+        ref = por_salida.get((f["ida"], f["destino"]))
+        if ref is None:
+            fi = dt.date.fromisoformat(f["ida"])
+            cerca = [c for c in base if c["destino"] == f["destino"]
+                     and abs((dt.date.fromisoformat(c["ida"]) - fi).days) <= 3]
+            ref = min(cerca, key=lambda c: (abs((dt.date.fromisoformat(c["ida"]) - fi).days), c["precio"])) \
+                if cerca else None
+        if not ref or not ref["precio"]:
+            continue
         ahorro = ref["precio"] - f["precio"]
-        if ref["precio"] and ahorro / ref["precio"] >= ahorro_min:
+        if ahorro / ref["precio"] >= ahorro_min:
+            vistas.add(k)
             ofertas.append({**f, "ahorro": ahorro, "ahorro_pct": round(100 * ahorro / ref["precio"]),
-                            "ref_ida": ref["ida"], "ref_vuelta": ref["vuelta"], "ref_precio": ref["precio"]})
-    ofertas.sort(key=lambda o: o["precio"])
+                            "ref_ida": ref["ida"], "ref_vuelta": ref["vuelta"], "ref_precio": ref["precio"],
+                            "ref_dias": ref["dias"], "ref_mismo_dia": ref["ida"] == f["ida"]})
+    ofertas.sort(key=lambda o: (o["precio"], -o["ahorro"]))
 
     por_mes: dict = {}
     por_dia: dict = {}
@@ -218,6 +271,7 @@ def datos_busqueda(con: sqlite3.Connection, nombre: str, meta: dict | None) -> d
         "mejor": mejor, "prev_best": prev_best,
         "mejor_flex": ofertas[0] if ofertas and ofertas[0]["precio"] < mejor["precio"] else None,
         "hist_min": hist,
+        "hist_prev": hist_prev,
         "top": base[:30],
         "ofertas": ofertas[:20],
         "por_mes": [por_mes[m] for m in sorted(por_mes)],

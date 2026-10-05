@@ -179,9 +179,19 @@ class SinCupo(Exception):
     """El proveedor no puede seguir en esta corrida (sin créditos, API key inválida...)."""
 
 
+def params_google(q, g: dict) -> dict:
+    """Parámetros de la consulta a Google Flights, con el país fijo (gl): si no, Google cotiza según el país
+    de la IP y desde la nube (EE.UU.) los precios no coinciden con los que se ven desde Argentina."""
+    p = dict(q.params())
+    if g.get("pais"):
+        p["gl"] = g["pais"]
+    return p
+
+
 def link_google_flights(b: dict, g: dict, origen: str, destino: str, ida: dt.date, vuelta: dt.date | None) -> str:
     try:
-        return _armar_query(b, g, origen, destino, ida, vuelta).url()
+        q = _armar_query(b, g, origen, destino, ida, vuelta)
+        return "https://www.google.com/travel/flights/search?" + urllib.parse.urlencode(params_google(q, g))
     except Exception:
         q = f"Flights from {origen} to {destino} on {ida}" + (f" through {vuelta}" if vuelta else " one way")
         return "https://www.google.com/travel/flights?" + urllib.parse.urlencode({"q": q, "curr": g.get("moneda", "USD")})
@@ -393,7 +403,7 @@ class FastFlightsProveedor(Proveedor):
         ultimo: Exception | None = None
         for intento in range(3):
             try:
-                html = self._cliente_actual(forzar_nuevo=intento > 0).get(URL, params=q.params()).text
+                html = self._cliente_actual(forzar_nuevo=intento > 0).get(URL, params=params_google(q, g)).text
                 info: dict = {}
                 ops = parsear_html_google(html, info)
                 if not ops:
@@ -430,6 +440,7 @@ class SerpApiProveedor(Proveedor):
             "engine": "google_flights", "api_key": self.api_key,
             "departure_id": origen, "arrival_id": destino, "outbound_date": ida.isoformat(),
             "type": 1 if vuelta else 2, "currency": g.get("moneda", "USD"), "hl": g.get("idioma", "es"),
+            "gl": g.get("pais", "AR").lower(),
             "adults": int(b.get("pasajeros", 1)), "travel_class": self.CLASES.get(b.get("clase", "economy"), 1),
         }
         if vuelta:
@@ -593,7 +604,10 @@ def estimar(b: dict, hoy: dt.date | None = None, g: dict | None = None) -> dict:
         out["escala"] = min(int(b.get("escala_top", 4)), len(combos)) * len(out["hubs"]) * (3 * n_orig + 3)
     if int(b.get("nivel_equipaje", 0) or 0) > 0 and combos:
         out["equipaje"] = int(b.get("verificar_top", 8)) * (1 if estrategia == "ida_vuelta" else 2)
-    out["consultas"] = out["exploracion"] + out["detalle"] + out["escala"] + out["equipaje"]
+    # horarios de la vuelta de las mejores opciones (una consulta por fecha de vuelta y origen distinta)
+    n_hv = int(b.get("horarios_vuelta_top", 40) or 0) if es_ida_vuelta(b) and estrategia != "solo_ida" else 0
+    out["horarios_vuelta"] = min(n_hv, len({v for _, v in combos}) * n_orig * nd) if combos and n_hv else 0
+    out["consultas"] = out["exploracion"] + out["detalle"] + out["escala"] + out["equipaje"] + out["horarios_vuelta"]
     ritmo = Ritmo.desde_config(g or {}, activo=(g or {}).get("proveedor", "auto") != "serpapi")
     out["segundos"] = round(out["consultas"] * ritmo.segundos_por_consulta())
     return out
@@ -777,6 +791,39 @@ class Corrida:
             if flex:
                 log.info(f"  3ra pasada: {len(flex)} combinaciones con días de diferencia (±{b.get('tolerancia_dias', 2)})")
                 self.ejecutar(flex)
+
+    # ------------------------------------------------------------------ horarios de la vuelta
+    def horarios_vuelta(self) -> None:
+        """El ida y vuelta de Google trae solo los horarios de la ida (la vuelta se elige en un segundo paso).
+        Para las mejores opciones consulta el solo ida de regreso y guarda sus horarios: el reporte muestra el
+        vuelo de vuelta de la misma aerolínea, que es el que Google suele combinar en ese precio."""
+        n = int(self.b.get("horarios_vuelta_top", 40) or 0)
+        if n <= 0:
+            return
+        self.con.commit()
+        filas = [f for f in db.filas_corrida(self.con, self.corrida_id)
+                 if f["tipo"] == "ida_vuelta" and f["vuelta"] and int(f["equipaje"] or 0) == self.nivel]
+        claves: list[tuple] = []
+        for flexible, tope in ((0, n), (1, max(1, n // 2))):
+            vistos: set = set()
+            for f in filas:   # vienen ordenadas por precio por persona
+                if bool(f["flexible"]) != bool(flexible):
+                    continue
+                vistos.add((f["ida"], f["vuelta"], f["origen"], f["destino"]))
+                if len(vistos) > tope:
+                    break
+                claves.append((f["destino"], f["origen"], dt.date.fromisoformat(f["vuelta"])))
+        claves = list(dict.fromkeys(claves))
+        if not claves:
+            return
+        log.info(f"  Horarios de vuelta: {len(claves)} consultas de solo ida para las mejores opciones")
+        tareas = [(o, d, fecha, None, self.nivel) for o, d, fecha in claves]
+        res = self.lote(tareas)
+        for t in tareas:
+            r = res.get(t)
+            if r:
+                db.guardar_vueltas(self.con, self.corrida_id, t[0], t[1], t[2], r[0][:8])
+        self.seguir()
 
     # ------------------------------------------------------------------ estrategia: dos solo ida
     def solo_ida(self) -> None:
@@ -1009,6 +1056,8 @@ class Corrida:
                 self.escala_separada()
             if self.nivel > 0:
                 self.comparar_sin_equipaje()
+            if es_ida_vuelta(b) and estrategia in ("ida_vuelta", "mixta"):
+                self.horarios_vuelta()
         except _Parar:
             pass
         return self.cerrar()

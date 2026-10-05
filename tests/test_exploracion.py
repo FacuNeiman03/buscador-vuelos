@@ -50,7 +50,7 @@ def test_explorar_pais_y_buscar_detalle_de_los_mas_baratos():
     assert len(exp) == 8
     assert detalle == set(destinos[-2:]), "solo los 2 más baratos se buscan en detalle"
     assert {x["destino"] for x in exp if x["elegido"]} == set(destinos[-2:])
-    assert prov.llamadas == e["consultas"] or prov.llamadas >= e["consultas"]
+    assert prov.llamadas >= e["consultas"] - e["horarios_vuelta"]
     assert d["multi_destino"] and len(d["exploracion"]) == 8 and "Brasil" in d["ruta"]
     assert d["mejor"]["destino"] == destinos[-1]
 
@@ -159,6 +159,6 @@ busquedas:
             db.finalizar_corrida(con, cid, 3, 3, 0)
     assert nombres(21) == []
     t = next(b for b in cfg.busquedas if b["nombre"] == "Temprano")
-    assert proxima_ejecucion(t, a_las(9)).startswith(f"{hoy + dt.timedelta(days=1):%d/%m/%Y} 06:00")
+    assert proxima_ejecucion(t, a_las(9)).startswith(f"{hoy + dt.timedelta(days=1):%d/%m/%Y} desde las 06:00")
     assert proxima_ejecucion(next(b for b in cfg.busquedas if b["nombre"] == "Futura")).startswith("01/01/2999")
     assert proxima_ejecucion(next(b for b in cfg.busquedas if b["nombre"] == "Pausada")) is None

@@ -35,7 +35,7 @@ from ..core import database as db
 from ..core import suscriptores as subs
 from ..core.config import AppConfig
 from ..core.paths import PLANTILLA_EMAIL
-from ..reporting.metrics import estadisticas, filtro_rango, fmt_min, mejores_por_combo
+from ..reporting.metrics import agregar_horarios, estadisticas, filtro_rango, fmt_min, mejores_por_combo
 
 log = logging.getLogger("vuelos")
 TOLERANCIA_PRECIO = 0.5      # diferencias menores a medio dólar/peso se consideran "mismo precio"
@@ -61,6 +61,7 @@ def _mejores_de_corrida(con: sqlite3.Connection, corrida_id: int, desde: str | N
         f["flexible"] = f.get("flexible") or 0
         if _en_ventana(f, desde, hasta):
             filas.append(f)
+    agregar_horarios(con, corrida_id, filas)
     base, _ = mejores_por_combo(filas)
     return base
 
@@ -80,9 +81,19 @@ def detectar_mejora(con: sqlite3.Connection, busqueda: str, corrida_id: int, des
     if ref is None:
         return None   # primera corrida (o primera vez con datos en esa ventana): solo referencia
 
+    # corrida anterior (para "ahorro vs ayer" y para avisar cuando vuelve al mínimo)
+    anteriores = [c for c in db.corridas_utiles(con, busqueda) if c["id"] < corrida_id]
+    prev_best = None
+    if anteriores:
+        pb = _mejores_de_corrida(con, anteriores[-1]["id"], desde, hasta, filtro)
+        prev_best = pb[0]["precio"] if pb else None
+
     motivo = None
     if hoy["precio"] < ref["precio"] - TOLERANCIA_PRECIO:
         motivo = "precio"
+    elif abs(hoy["precio"] - ref["precio"]) <= TOLERANCIA_PRECIO and prev_best is not None \
+            and hoy["precio"] < prev_best - TOLERANCIA_PRECIO:
+        motivo = "minimo"   # había subido y volvió a bajar al precio más bajo que se vio
     elif avisar_condiciones and abs(hoy["precio"] - ref["precio"]) <= TOLERANCIA_PRECIO:
         if (hoy["escalas"] or 0) < (ref["escalas"] or 0):
             motivo = "escalas"
@@ -91,13 +102,6 @@ def detectar_mejora(con: sqlite3.Connection, busqueda: str, corrida_id: int, des
             motivo = "duracion"
     if not motivo:
         return None
-
-    # corrida anterior (para "ahorro vs ayer")
-    anteriores = [c for c in db.corridas_utiles(con, busqueda) if c["id"] < corrida_id]
-    prev_best = None
-    if anteriores:
-        pb = _mejores_de_corrida(con, anteriores[-1]["id"], desde, hasta, filtro)
-        prev_best = pb[0]["precio"] if pb else None
     stats = estadisticas([c["precio"] for c in base])
     return {"busqueda": busqueda, "corrida_id": corrida_id, "motivo": motivo, "hoy": hoy, "ref": ref,
             "prev_best": prev_best, "stats": stats, "desde": desde, "hasta": hasta}
@@ -142,6 +146,13 @@ def componer_email(info: dict, meta: dict | None, url_reporte: str = "", url_baj
         titulo = f"{nombre}: {_money(h['precio'], cur)} por persona"
         ahorro_linea = f"▼ {_money(ahorro, cur)} menos que el mínimo que habíamos visto ({_money(ref['precio'], cur)})"
         asunto = f"✈️ {nombre}: bajó a {_money(h['precio'], cur)} x persona (-{_money(ahorro, cur)})"
+    elif info["motivo"] == "minimo":
+        ahorro = (info["prev_best"] or h["precio"]) - h["precio"]
+        etiqueta, color = "Volvió al precio más bajo", "#0a7d35"
+        titulo = f"{nombre}: {_money(h['precio'], cur)} por persona"
+        ahorro_linea = (f"▼ {_money(ahorro, cur)} menos que la búsqueda anterior ({_money(info['prev_best'], cur)}) "
+                        f"· igual al mínimo que habíamos visto")
+        asunto = f"✈️ {nombre}: volvió a {_money(h['precio'], cur)} x persona (mínimo histórico)"
     else:
         etiqueta, color = "Mejores condiciones al mismo precio", "#2a78d6"
         titulo = f"{nombre}: mismo precio, mejor vuelo"
@@ -160,6 +171,11 @@ def componer_email(info: dict, meta: dict | None, url_reporte: str = "", url_baj
         d = h["precio"] - info["prev_best"]
         txt = "igual" if abs(d) < 1 else f"{'▼' if d < 0 else '▲'} {_money(abs(d), cur)} (ayer {_money(info['prev_best'], cur)})"
         filas.append(fila("vs corrida anterior", txt, "#0a7d35" if d < 0 else "#0b0b0b"))
+    if h.get("ida_hora") or h.get("vta_hora"):
+        hs = f"ida {h['ida_hora'] or '—'}"
+        if ida_vuelta:
+            hs += f" · vuelta {h['vta_hora'] or '—'}" + (" (aprox.)" if h.get("vta_aprox") else "")
+        filas.append(fila("Salida", hs))
     st = info["stats"]
     if st["promedio"]:
         filas.append(fila("Promedio de hoy (todas las fechas)", _money(st["promedio"], cur)))
@@ -212,6 +228,7 @@ def componer_email(info: dict, meta: dict | None, url_reporte: str = "", url_baj
         f"Precio por persona: {_money(h['precio'], cur)}  ({ahorro_linea})",
         f"Fechas: {_fd(h['ida'])}" + (f" → {_fd(h['vuelta'])} ({dias} días)" if ida_vuelta else ""),
         f"Vuelo: {h.get('aerolineas')} · {valores['escalas']} · {fmt_min(h['duracion_min'])} · {h.get('ruta')}",
+        f"Salida: ida {h.get('ida_hora') or '—'}" + (f" · vuelta {h.get('vta_hora') or '—'}" if ida_vuelta else ""),
         f"Mínimo registrado antes de hoy: {_money(ref['precio'], cur)}",
         *([f"Se arma con {len(tramos)} pasajes separados ({TIPOS_TXT.get(h.get('tipo'), '')}):"]
           + [f"  - {'Ida' if t['sentido'] == 'ida' else 'Vuelta'} {t['origen']}→{t['destino']} {t['fecha']} "

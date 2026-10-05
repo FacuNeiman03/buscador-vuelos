@@ -232,3 +232,87 @@ def test_suscriptor_con_ventana():
         cid = _corrida_manual(con, nombre, 70)          # ida 2027-01-10
         assert mailer.detectar_mejora(con, nombre, cid, desde="2027-02-01") is None
         assert mailer.detectar_mejora(con, nombre, cid, desde="2027-01-01", hasta="2027-01-31")["motivo"] == "precio"
+
+
+# --------------------------------------------------------------------------- arreglos 10/2026
+class ConVuelta(Falso):
+    """Ida y vuelta: Google solo da la hora de la ida. Solo ida de regreso: dos aerolíneas."""
+    def buscar(self, b, g, origen, destino, ida, vuelta):
+        if vuelta is None and origen == "BRC":
+            self.llamadas += 1
+            return [{"precio": 50.0, "aerolineas": "Otra", "escalas": 0, "duracion_min": 120,
+                     "salida": f"{ida} 07:15", "llegada": f"{ida} 09:15", "ruta": "BRC → AEP"},
+                    {"precio": 80.0, "aerolineas": "Test Air", "escalas": 0, "duracion_min": 120,
+                     "salida": f"{ida} 18:40", "llegada": f"{ida} 20:40", "ruta": "BRC → AEP"}], "https://x"
+        return super().buscar(b, g, origen, destino, ida, vuelta)
+
+
+def test_horarios_de_vuelta_de_la_misma_aerolinea():
+    from src.reporting.metrics import datos_busqueda
+    cfg = cfg_()
+    b = cfg.buscar("Verano")
+    prov = ConVuelta()
+    with db.conexion() as con:
+        correr_busqueda(con, b, cfg.general, [500], prov, dormir=lambda s: None)
+        d = datos_busqueda(con, "Verano", b)
+    m = d["mejor"]
+    assert m["ida_hora"] == "10:00"
+    assert m["vta_hora"] == "18:40" and m["vta_aprox"], "la vuelta es la de la MISMA aerolínea, no la más barata"
+    assert all(c["vta_hora"] == "18:40" for c in d["top"][:5])
+
+
+def test_consulta_con_pais_fijo():
+    from src.core.flight_searcher import _armar_query, link_google_flights, params_google
+    cfg = cfg_()
+    b, g = cfg.buscar("Verano"), cfg.general
+    assert g["pais"] == "AR"
+    q = _armar_query(b, g, "AEP", "BRC", dt.date(2027, 1, 10), dt.date(2027, 1, 17))
+    assert params_google(q, g)["gl"] == "AR"
+    assert "gl=AR" in link_google_flights(b, g, "AEP", "BRC", dt.date(2027, 1, 10), dt.date(2027, 1, 17))
+
+
+def test_ofertas_se_comparan_con_la_salida_del_mismo_dia_y_sin_repetir():
+    from src.reporting.metrics import datos_busqueda
+    cfg = cfg_(CONFIG.replace("origenes: [AEP]", "origenes: [AEP, EZE]"))
+    b = cfg.buscar("Verano")
+    with db.conexion() as con:
+        cid = db.iniciar_corrida(con, "Verano", "test")
+        op = lambda p: [{"precio": p * 2, "aerolineas": "X", "escalas": 0, "duracion_min": 100,  # noqa: E731
+                         "salida": "2027-01-10 06:00", "llegada": "2027-01-10 08:00", "ruta": "A → B"}]
+        i = dt.date(2027, 1, 10)
+        for o in ("AEP", "EZE"):   # 7 días saliendo el 10: 150; el 12: 70 (la más barata del período)
+            db.guardar_opciones(con, cid, "Verano", "2026-10-05 10:00", o, "BRC", i, i + dt.timedelta(7), op(150),
+                                "USD", 2, "l", flexible=False)
+            db.guardar_opciones(con, cid, "Verano", "2026-10-05 10:00", o, "BRC", i + dt.timedelta(2),
+                                i + dt.timedelta(9), op(70), "USD", 2, "l", flexible=False)
+            # 6 días saliendo el 10: 80 (por AEP y por EZE: debe aparecer una sola vez)
+            db.guardar_opciones(con, cid, "Verano", "2026-10-05 10:00", o, "BRC", i, i + dt.timedelta(6), op(80),
+                                "USD", 2, "l", flexible=True)
+        db.finalizar_corrida(con, cid, 6, 0, db.COMPLETA)
+        d = datos_busqueda(con, "Verano", b)
+    of = [o for o in d["ofertas"] if o["ida"] == "2027-01-10"]
+    assert len(of) == 1, "una fila por fechas aunque se haya encontrado por EZE y por AEP"
+    assert of[0]["ref_precio"] == 150 and of[0]["ref_mismo_dia"] and of[0]["ref_ida"] == "2027-01-10"
+
+
+def test_alerta_cuando_vuelve_al_minimo_historico():
+    cfg = cfg_()
+    b = {**cfg.buscar("Verano"), "nombre": "VueltaMin"}
+    with db.conexion() as con:
+        def corrida(precio):
+            cid = db.iniciar_corrida(con, "VueltaMin", "test")
+            db.guardar_opciones(con, cid, "VueltaMin", "2026-10-01 10:00", "AEP", "BRC", dt.date(2027, 1, 10),
+                                dt.date(2027, 1, 17), [{"precio": precio * 2, "aerolineas": "X", "escalas": 0,
+                                                        "duracion_min": 100, "salida": "2027-01-10 06:00",
+                                                        "llegada": "", "ruta": ""}], "USD", 2, "l", flexible=False)
+            db.finalizar_corrida(con, cid, 1, 0, db.COMPLETA)
+            return cid
+        corrida(72)
+        corrida(95)
+        c3 = corrida(72)                   # volvió al mínimo: avisa aunque no sea MÁS barato
+        info = mailer.detectar_mejora(con, "VueltaMin", c3)
+        assert info and info["motivo"] == "minimo" and info["prev_best"] == 95
+        asunto, html, texto = mailer.componer_email(info, b)
+        assert "mínimo" in asunto and "Salida" in html
+        c4 = corrida(72)                   # sigue igual: no repite el aviso
+        assert mailer.detectar_mejora(con, "VueltaMin", c4) is None
