@@ -622,12 +622,16 @@ def estimar(b: dict, hoy: dt.date | None = None, g: dict | None = None) -> dict:
     if usa_escala_separada(b) and combos:
         out["hubs"] = _hubs(b, destinos[:1])
         out["escala"] = min(int(b.get("escala_top", 4)), len(combos)) * len(out["hubs"]) * (3 * n_orig + 3)
-    if int(b.get("nivel_equipaje", 0) or 0) > 0 and combos:
+    niveles = list(b.get("niveles_equipaje") or [int(b.get("nivel_equipaje", 0) or 0)])
+    out["niveles_equipaje"] = len(niveles)
+    if int(b.get("nivel_equipaje", 0) or 0) > 0 and 0 not in niveles and combos:
         out["equipaje"] = int(b.get("verificar_top", 8)) * (1 if estrategia == "ida_vuelta" else 2)
     # horarios de la vuelta de las mejores opciones (una consulta por fecha de vuelta y origen distinta)
     n_hv = int(b.get("horarios_vuelta_top", 40) or 0) if es_ida_vuelta(b) and estrategia != "solo_ida" else 0
     out["horarios_vuelta"] = min(n_hv, len({v for _, v in combos}) * n_orig * nd) if combos and n_hv else 0
-    out["consultas"] = out["exploracion"] + out["detalle"] + out["escala"] + out["equipaje"] + out["horarios_vuelta"]
+    # con varios equipajes se repite todo (menos la exploración) una vez por equipaje
+    k = len(niveles)
+    out["consultas"] = out["exploracion"] + k * (out["detalle"] + out["escala"] + out["horarios_vuelta"]) + out["equipaje"]
     ritmo = Ritmo.desde_config(g or {}, activo=(g or {}).get("proveedor", "auto") != "serpapi")
     out["segundos"] = round(out["consultas"] * ritmo.segundos_por_consulta())
     return out
@@ -666,6 +670,7 @@ class Corrida:
         self.mejores: dict = {}          # (ida, vuelta, destino) -> (precio, es_base, opcion, origen)
         self.cache_tramos: dict = {}     # (origen, destino, fecha, nivel) -> [tramos]
         self.destinos_detalle = list(b["destinos"])
+        self._hubo_datos = False
         self.corrida_id = db.iniciar_corrida(con, self.nombre, proveedor.nombre)
 
     # ------------------------------------------------------------------ consultas
@@ -1063,27 +1068,43 @@ class Corrida:
             log.info("  No hay fechas válidas para buscar (¿rango en el pasado o meses_permitidos sin días?).")
             db.finalizar_corrida(self.con, self.corrida_id, 0, 0, 0)
             return False
+        niveles = list(b.get("niveles_equipaje") or [])
+        nombres = list(b.get("equipajes") or [])
+        if not niveles or niveles[0] != self.nivel:   # el principal manda (p. ej. si se pisó nivel_equipaje)
+            niveles, nombres = [self.nivel], [b.get("equipaje", "ninguno")]
         try:
             if usa_exploracion(b):
                 self.explorar(iniciales)
-            if estrategia == "ida_vuelta":
-                self.pasadas_ida_vuelta(iniciales)
-            else:
-                self.solo_ida()
-                if estrategia == "mixta":
-                    self.verificar_ida_vuelta()
-            if usa_escala_separada(b):
-                self.escala_separada()
-            if self.nivel > 0:
-                self.comparar_sin_equipaje()
-            if es_ida_vuelta(b) and estrategia in ("ida_vuelta", "mixta"):
-                self.horarios_vuelta()
+            for k, nivel in enumerate(niveles):
+                if k:
+                    self._cambiar_nivel(nivel, nombres[k] if k < len(nombres) else str(nivel))
+                if len(niveles) > 1:
+                    log.info(f"  -- Equipaje: {self.b.get('equipaje')} --")
+                if estrategia == "ida_vuelta":
+                    self.pasadas_ida_vuelta(iniciales)
+                else:
+                    self.solo_ida()
+                    if estrategia == "mixta":
+                        self.verificar_ida_vuelta()
+                if usa_escala_separada(self.b):
+                    self.escala_separada()
+                if self.nivel > 0 and 0 not in niveles:
+                    self.comparar_sin_equipaje()   # con varios equipajes ya está el precio "sin equipaje" completo
+                if es_ida_vuelta(b) and estrategia in ("ida_vuelta", "mixta"):
+                    self.horarios_vuelta()
         except _Parar:
             pass
         return self.cerrar()
 
+    def _cambiar_nivel(self, nivel: int, nombre: str) -> None:
+        """Pasa al siguiente equipaje: mismas fechas y estrategia, precios nuevos (se guardan con su nivel)."""
+        self._hubo_datos = self._hubo_datos or bool(self.precio_base or self.precio_flex)
+        self.nivel = nivel
+        self.b = {**self.b, "nivel_equipaje": nivel, "equipaje": nombre}
+        self.ya, self.precio_base, self.precio_flex, self.mejores = set(), {}, {}, {}
+
     def cerrar(self) -> bool:
-        tiene_datos = bool(self.precio_base or self.precio_flex)
+        tiene_datos = self._hubo_datos or bool(self.precio_base or self.precio_flex)
         if self.consultas and self.errores < self.consultas and tiene_datos:
             estado = db.COMPLETA
         elif tiene_datos:

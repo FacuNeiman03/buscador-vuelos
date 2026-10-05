@@ -328,3 +328,44 @@ def test_nivel_de_precio_bajo_habitual_alto():
     assert n["desde"] < n["mediana"] < n["hasta"] and n["diferencia"] > 0
     assert nivel_precio(precios[:10], 72, 5) is None, "con pocos precios no se muestra"
     assert nivel_precio(precios, 72, 1) is None, "con una sola corrida no hay 'habitual'"
+
+
+class PorEquipaje(Falso):
+    def buscar(self, b, g, origen, destino, ida, vuelta):
+        ops, link = super().buscar(b, g, origen, destino, ida, vuelta)
+        ops[0]["precio"] += 40 * int(b.get("nivel_equipaje", 0) or 0)   # el carry on suma 20 x persona
+        return ops, link
+
+
+def test_varios_equipajes_una_corrida_y_selector_en_el_reporte():
+    from src.reporting.generator import recolectar
+    texto = CONFIG.replace("    refinar_top: 2\n", "    refinar_top: 2\n    equipaje: [ninguno, mano]\n", 1)
+    cfg = cfg_(texto)
+    b = cfg.buscar("Verano")
+    assert b["equipajes"] == ["ninguno", "mano"] and b["niveles_equipaje"] == [0, 1] and b["nivel_equipaje"] == 0
+    prov = PorEquipaje()
+    with db.conexion() as con:
+        n0 = con.execute("SELECT COUNT(*) FROM corridas WHERE busqueda='Verano'").fetchone()[0]
+        correr_busqueda(con, b, cfg.general, [2000], prov, dormir=lambda s: None)
+        assert con.execute("SELECT COUNT(*) FROM corridas WHERE busqueda='Verano'").fetchone()[0] == n0 + 1, \
+            "los dos equipajes van en UNA corrida (si no, se rompe la comparación con la corrida anterior)"
+        niveles = {r[0] for r in con.execute(
+            "SELECT DISTINCT equipaje FROM precios WHERE corrida_id=(SELECT MAX(id) FROM corridas)")}
+        assert niveles == {0, 1}
+        d = next(x for x in recolectar(con, cfg) if x["nombre"] == "Verano")
+    v0, v1 = d["variantes"]
+    assert v0["equipaje"] == "ninguno" and v1["equipaje"] == "mano"
+    assert v1["datos"]["mejor"]["precio"] == v0["datos"]["mejor"]["precio"] + 20
+    assert d["mejor"]["precio"] == v0["datos"]["mejor"]["precio"], "por defecto se ve el primero"
+    json_seguro(d)   # serializable (sin referencias circulares)
+
+
+def test_editor_guarda_varios_equipajes():
+    from src.core import config_editor as ce
+    escribir_config()
+    año = dt.date.today().year + 1
+    ce.crear({"nombre": "Eq", "destinos": ["BRC"], "viajar_desde": f"{año}-01-01", "viajar_hasta": f"{año}-01-20",
+              "dias_min": 5, "dias_max": 5, "equipajes": ["mano", "ninguno"]})
+    b = cargar_config().buscar("Eq")
+    assert b["equipajes"] == ["ninguno", "mano"], "ordenados: el principal es el más liviano"
+    assert ce.form_desde_meta(b)["equipajes"] == ["ninguno", "mano"]

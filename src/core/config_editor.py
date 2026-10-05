@@ -208,9 +208,14 @@ def normalizar_form(data: dict, hoy: dt.date | None = None) -> dict:
     f["estrategia"] = data.get("estrategia") or "ida_vuelta"
     if f["estrategia"] not in ESTRATEGIAS:
         err.append("Estrategia inválida.")
-    f["equipaje"] = data.get("equipaje") or "ninguno"
-    if f["equipaje"] not in EQUIPAJES:
-        err.append("Equipaje inválido.")
+    eqs = data.get("equipajes") or data.get("equipaje") or ["ninguno"]
+    eqs = [eqs] if isinstance(eqs, str) else list(eqs)
+    eqs = sorted(dict.fromkeys(eqs), key=lambda x: EQUIPAJES.get(x, 9))   # mochila, carry on, despachada
+    if not eqs or any(x not in EQUIPAJES for x in eqs):
+        err.append("Equipaje inválido: elegí al menos uno.")
+        eqs = ["ninguno"]
+    f["equipajes"] = eqs
+    f["equipaje"] = eqs[0]
     f["escala_separada"] = bool(data.get("escala_separada", False))
     f["hubs"] = _lista_iata(data.get("hubs"))
     for c in f["hubs"]:
@@ -308,7 +313,7 @@ def _aplicar(item: CommentedMap, f: dict, nueva: bool) -> CommentedMap:
     else:
         item.pop("estrategia", None)
     item.pop("equipaje_despachado", None)
-    poner("equipaje", f["equipaje"])
+    poner("equipaje", flujo(f["equipajes"]) if len(f["equipajes"]) > 1 else f["equipajes"][0])
     if f["escala_separada"] and f["tipo"] == "ida_vuelta":
         poner("escala_separada", True)
         if f["hubs"]:
@@ -360,6 +365,7 @@ def form_desde_meta(meta: dict) -> dict:
         "clase": meta.get("clase", "economy"), "max_escalas": meta.get("max_escalas"),
         "alerta_precio_persona": meta.get("alerta_precio_persona"),
         "estrategia": meta.get("estrategia", "ida_vuelta"), "equipaje": meta.get("equipaje", "ninguno"),
+        "equipajes": meta.get("equipajes") or [meta.get("equipaje", "ninguno")],
         "escala_separada": bool(meta.get("escala_separada")), "hubs": meta.get("hubs", []),
         "conexion_min_horas": meta.get("conexion_min_horas", 4),
     }

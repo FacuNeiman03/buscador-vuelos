@@ -234,13 +234,18 @@ def _validar_busqueda(b: dict, i: int, hoy: dt.date, err: list[str]) -> dict:
     if out["estrategia"] not in ESTRATEGIAS:
         err.append(f"{donde}: estrategia debe ser una de {sorted(ESTRATEGIAS)}")
     # --- Equipaje (lo que llevás; los precios lo incluyen) ---
+    # Puede ser uno ("mano") o varios ([ninguno, mano]): con varios se busca todo con cada equipaje y el
+    # reporte deja elegir cuál ver. El PRIMERO es el principal (alertas por email, búsqueda local por defecto).
     eq = b.get("equipaje")
     if eq is None:
         eq = "despachado" if int(b.get("equipaje_despachado", 0) or 0) > 0 else "ninguno"
-    if eq not in EQUIPAJES:
-        err.append(f"{donde}: equipaje debe ser ninguno, mano o despachado")
-        eq = "ninguno"
-    out["equipaje"], out["nivel_equipaje"] = eq, EQUIPAJES[eq]
+    eqs = list(dict.fromkeys(str(x).strip() for x in _lista(eq))) or ["ninguno"]
+    if any(x not in EQUIPAJES for x in eqs):
+        err.append(f"{donde}: equipaje debe ser ninguno, mano o despachado (o una lista, ej: [ninguno, mano])")
+        eqs = [x for x in eqs if x in EQUIPAJES] or ["ninguno"]
+    out["equipajes"] = eqs
+    out["niveles_equipaje"] = [EQUIPAJES[x] for x in eqs]
+    out["equipaje"], out["nivel_equipaje"] = eqs[0], EQUIPAJES[eqs[0]]
     # --- Escala armada por separado (pasajes separados vía un hub) ---
     out["escala_separada"] = bool(b.get("escala_separada", False))
     out["hubs"] = [str(x).upper().strip() for x in _lista(b.get("hubs"))]

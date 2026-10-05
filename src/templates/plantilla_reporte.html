@@ -280,6 +280,11 @@ button,input,select{font:inherit;color:inherit}
 .extlink{display:inline-flex;align-items:center;gap:4px;font-weight:500;font-size:14px;white-space:nowrap}
 .extlink .i{width:14px;height:14px}
 
+.seg-eq{display:inline-flex;gap:4px;padding:3px;margin-top:10px;border:1px solid var(--border);border-radius:999px;background:var(--surface-2);flex-wrap:wrap}
+.seg-eq button{border:0;background:transparent;color:var(--text-2);font:inherit;font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;cursor:pointer}
+.seg-eq button.on{background:var(--surface);color:var(--text);box-shadow:var(--sh-1, 0 1px 2px rgba(0,0,0,.15))}
+.field-eq{margin-bottom:var(--s4)} .field-eq .flabel{font-size:13px;font-weight:550;color:var(--text)} .field-eq .flabel small{font-weight:400;color:var(--text-3)}
+.eqs{display:flex;flex-direction:column;gap:6px;margin:8px 0 6px}
 /* ¿Precio bajo, habitual o alto? (como el indicador de Google Flights, con los precios que juntamos) */
 .nivel{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s4);align-items:center;margin-bottom:var(--s4)}
 @media (max-width:820px){ .nivel{grid-template-columns:1fr} }
@@ -620,11 +625,12 @@ dialog[open]{animation:aparecer .18s var(--ease)}
               <label class="ocard"><input type="radio" name="f_estr" value="mixta"><b>Inteligente: 2 pasajes de ida + ida y vuelta</b><span class="od"></span></label>
               <label class="ocard"><input type="radio" name="f_estr" value="solo_ida"><b>Solo 2 pasajes de ida (menos consultas)</b><span class="od"></span></label>
             </div></div>
-          <div class="field"><label for="f_eq">Equipaje que llevás</label><select id="f_eq">
-              <option value="ninguno">Solo mochila / artículo personal</option>
-              <option value="mano">Valija de mano (carry-on)</option>
-              <option value="despachado">Valija despachada</option></select>
-            <span class="help">Los precios incluyen lo que cobra cada aerolínea por ese equipaje.</span></div>
+          <div class="field-eq"><span class="flabel" id="lblEq">Equipaje que llevás <small>(podés elegir varios)</small></span>
+            <div class="eqs" role="group" aria-labelledby="lblEq">
+              <label class="check"><input type="checkbox" name="f_eq" value="ninguno"><span>Solo mochila / artículo personal</span></label>
+              <label class="check"><input type="checkbox" name="f_eq" value="mano"><span>Valija de mano (carry-on)</span></label>
+              <label class="check"><input type="checkbox" name="f_eq" value="despachado"><span>Valija despachada</span></label></div>
+            <span class="help">Los precios incluyen lo que cobra cada aerolínea por ese equipaje. Con varios, se busca todo con cada uno (tarda más) y en el reporte elegís cuál ver; las alertas por email usan el primero.</span></div>
           <div class="solo-iv">
             <label class="check"><input id="f_st" type="checkbox"><span>Probar escalas armadas con pasajes separados<small>Suele ahorrar en viajes largos.</small></span></label>
             <div class="subpanel" id="stPanel" hidden>
@@ -1088,6 +1094,7 @@ function cabecera(b){
       <h2 class="sh-title" id="shT">${esc(b.nombre)}${b.activa?"":` <span class="badge warn">${ico("pause")}Pausada</span>`}${b.sin_datos?` <span class="badge neutral">Sin datos</span>`:""}</h2>
       <p class="sh-meta">${meta.join('<span class="dot" aria-hidden="true">·</span>')}</p>
       ${b.rango?`<span class="chip-rango">${ico("cal")}${esc(b.rango)}</span>`:""}
+      ${selectorEquipaje(b)}
     </div>
     <div class="sh-actions">
       <button class="btn btn-primary" id="btnAct" onclick="actualizar()" ${b.activa?"":"disabled title='Reanudala para buscar'"}><span class="ic">${ico("refresh")}</span><span class="spin" aria-hidden="true"></span><span class="txt">Actualizar datos de este vuelo</span></button>
@@ -1127,11 +1134,27 @@ function verTab(t){  // lleva la solapa activa a la vista sin mover la página
   const c = $("#tabs"), l = t.offsetLeft - c.offsetLeft, r = l + t.offsetWidth;
   if(l < c.scrollLeft) c.scrollLeft = l - 16; else if(r > c.scrollLeft + c.clientWidth) c.scrollLeft = r - c.clientWidth + 32;
 }
+/* Varios equipajes: cada búsqueda trae un juego de datos por equipaje; se elige cuál ver */
+const EQ_TXT = {ninguno:"Solo mochila", mano:"Con carry on", despachado:"Con valija despachada"};
+const eqElegido = {};
+function vista(i){
+  const b = DATOS.busquedas[i], vs = b.variantes || [];
+  if(vs.length < 2) return b;
+  const k = Math.min(eqElegido[b.slug] || 0, vs.length - 1);
+  return {...vs[k].datos, variantes: vs, eqK: k, slug: b.slug, config: b.config, rango: b.rango, proxima: b.proxima,
+          nombre: b.nombre, activa: b.activa, en_config: b.en_config, ruta: b.ruta || vs[k].datos.ruta};
+}
+function elegirEquipaje(k){ eqElegido[DATOS.busquedas[actual].slug] = k; render(actual); }
+function selectorEquipaje(b){
+  if(!b.variantes || b.variantes.length < 2) return "";
+  return `<div class="seg-eq" role="radiogroup" aria-label="Equipaje">${b.variantes.map((v,k) =>
+    `<button type="button" role="radio" aria-checked="${k===b.eqK}" class="${k===b.eqK?"on":""}" onclick="elegirEquipaje(${k})">${esc(EQ_TXT[v.equipaje]||v.equipaje)}</button>`).join("")}</div>`;
+}
 function render(i){
   actual = i;
   charts.forEach(c=>c.destroy()); charts=[];
   document.querySelectorAll("#tabs [role=tab]").forEach((t,j) => { const on = i===j; t.setAttribute("aria-selected", String(on)); t.tabIndex = on ? 0 : -1; if(on) verTab(t); });
-  const b = DATOS.busquedas[i];
+  const b = vista(i);
   const cab = cabecera(b);
   if(b.sin_datos){
     $("#contenido").innerHTML = cab + `${b.activa?"":banner("warn","pause","Búsqueda pausada: no se actualiza sola.")}
@@ -1206,7 +1229,7 @@ function graficos(b){
   }
 }
 /* Redibuja los gráficos si cambia el modo claro/oscuro o el ancho (celular <-> escritorio) */
-["(prefers-color-scheme: dark)","(max-width:640px)"].forEach(q => { const mq = matchMedia(q); const f = () => { if(DATOS && DATOS.busquedas && DATOS.busquedas.length && !DATOS.busquedas[actual].sin_datos) graficos(DATOS.busquedas[actual]); }; mq.addEventListener ? mq.addEventListener("change", f) : mq.addListener(f); });
+["(prefers-color-scheme: dark)","(max-width:640px)"].forEach(q => { const mq = matchMedia(q); const f = () => { if(DATOS && DATOS.busquedas && DATOS.busquedas.length && !vista(actual).sin_datos) graficos(vista(actual)); }; mq.addEventListener ? mq.addEventListener("change", f) : mq.addListener(f); });
 
 /* ---------------------------------------------------------------------------
    Diálogos propios (reemplazan alert / confirm / prompt)
@@ -1545,7 +1568,7 @@ function leerForm(){
     dias_min: +$("#f_dmin").value || null, dias_max: +$("#f_dmax").value || null, pasajeros: +$("#f_pax").value || 1,
     clase: $("#f_clase").value, max_escalas: esc_==="" ? null : +esc_,
     alerta_precio_persona: $("#f_alerta").value ? +$("#f_alerta").value : null,
-    estrategia: valRadio("f_estr"), equipaje: $("#f_eq").value,
+    estrategia: valRadio("f_estr"), equipajes: [...document.querySelectorAll("input[name=f_eq]:checked")].map(x => x.value),
     escala_separada: $("#f_st").checked && tipo === "ida_vuelta",
     hubs: pkHubs.codes, conexion_min_horas: +$("#f_conex").value || 4,
     buscar_desde: $("#f_bdesde").value, buscar_hasta: $("#f_bhasta").value,
@@ -1574,7 +1597,8 @@ async function abrirForm(b){
   $("#f_clase").value = c ? c.clase : "economy";
   $("#f_alerta").value = c && c.alerta_precio_persona ? Math.round(c.alerta_precio_persona) : "";
   setRadio("f_estr", c ? (c.estrategia || "ida_vuelta") : "ida_vuelta");
-  $("#f_eq").value = c ? (c.equipaje || "ninguno") : "ninguno";
+  const eqSel = c ? (c.equipajes || [c.equipaje || "ninguno"]) : ["ninguno"];
+  document.querySelectorAll("input[name=f_eq]").forEach(x => x.checked = eqSel.includes(x.value));
   $("#f_st").checked = !!(c && c.escala_separada); stCambio();
   pkHubs.set(c && c.hubs ? c.hubs : []); $("#f_hubs").value = "";
   $("#f_conex").value = c && c.conexion_min_horas ? c.conexion_min_horas : 4;
@@ -1625,6 +1649,8 @@ async function estimar(){
     }
     if(j.escala) partes.push(`escalas armadas vía ${(j.hubs||[]).join(", ")}: ~${j.escala}`);
     if(j.equipaje) partes.push(`comparar sin equipaje: ~${j.equipaje}`);
+    if(j.horarios_vuelta) partes.push(`horarios de la vuelta de las mejores opciones: ~${j.horarios_vuelta}`);
+    if(j.niveles_equipaje > 1) partes.push(`todo lo anterior × ${j.niveles_equipaje} equipajes`);
     setEst(`Va a hacer <b>~${j.consultas} consultas</b> (unos <b>${t}</b>):<ul>${partes.map(p=>`<li>${esc(p)}</li>`).join("")}</ul>`, `~${j.consultas} consultas · unos ${t}`);
   }catch(e){ /* sin servidor: se ignora */ }
 }

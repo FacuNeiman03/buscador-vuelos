@@ -293,6 +293,7 @@ class PedidoBusqueda(BaseModel):
     alerta_precio_persona: float | None = None
     estrategia: str = "ida_vuelta"
     equipaje: str = "ninguno"
+    equipajes: list[str] | None = None
     escala_separada: bool = False
     hubs: list[str] | str = []
     conexion_min_horas: int | None = None

@@ -53,10 +53,19 @@ def recolectar(con: sqlite3.Connection, cfg: AppConfig) -> list[dict]:
     """
     datos = []
     for meta in sorted(cfg.busquedas, key=lambda b: not b["activa"]):
-        d = datos_busqueda(con, meta["nombre"], meta)
-        if d is None:
-            d = _sin_datos(meta)
-            d["con_historial"] = bool(db.corridas_utiles(con, meta["nombre"]))
+        # Un juego de datos por equipaje elegido (el primero es el principal); el reporte deja cambiar entre ellos
+        eqs = list(meta.get("equipajes") or [meta.get("equipaje", "ninguno")])
+        nivs = list(meta.get("niveles_equipaje") or [meta.get("nivel_equipaje", 0)])
+        variantes = [{"equipaje": e, "nivel": n,
+                      "datos": datos_busqueda(con, meta["nombre"], {**meta, "equipaje": e, "nivel_equipaje": n})}
+                     for e, n in zip(eqs, nivs)]
+        con_hist = bool(db.corridas_utiles(con, meta["nombre"]))
+        for v in variantes:
+            if v["datos"] is None:
+                v["datos"] = {**_sin_datos(meta), "con_historial": con_hist, "equipaje": v["equipaje"]}
+        d = dict(variantes[0]["datos"])
+        if len(variantes) > 1:
+            d["variantes"] = variantes
         d["slug"] = slug(meta["nombre"])
         d["rango"] = descripcion_rango(meta)
         d["config"] = form_desde_meta(meta)
