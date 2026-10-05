@@ -41,10 +41,10 @@ busquedas:
     origenes: [AEP, EZE]   # Buenos Aires: Aeroparque y Ezeiza
     destinos: [NQN]        # Cipolletti no tiene aeropuerto: Neuquén queda a ~20 min
     tipo: ida_vuelta
-    estrategia: ida_vuelta # ida_vuelta = pasaje ida y vuelta clásico · mixta = también prueba 2 pasajes sueltos
-    pasajeros: 1
+    estrategia: mixta      # ida_vuelta = pasaje ida y vuelta clásico · mixta = también prueba 2 pasajes sueltos
+    pasajeros: 2
     clase: economy
-    max_escalas: 1
+    max_escalas: 0
     max_duracion_horas: 8
     viajar_desde: "2027-01-01"   # por trabajo solo se puede viajar entre enero y marzo:
     viajar_hasta: "2027-03-31"   # la ida y la vuelta quedan dentro de este rango
@@ -53,8 +53,8 @@ busquedas:
     refinar_top: 6
     tolerancia_dias: 5
     ahorro_minimo_pct: 5
-    alerta_precio_persona: 150
-    equipaje: ninguno
+    alerta_precio_persona: 100
+    equipaje: mano
 
   - nombre: China
     activa: true
