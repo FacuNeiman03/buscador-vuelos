@@ -7,6 +7,7 @@ así el máximo refleja "la peor fecha para viajar", no el vuelo más caro de to
 from __future__ import annotations
 
 import datetime as dt
+import statistics
 import sqlite3
 from statistics import mean
 
@@ -81,6 +82,21 @@ def agregar_horarios(con: sqlite3.Connection, corrida_id: int, filas: list[dict]
             if aer & _aerolineas(o["aerolineas"]):
                 f["vta_hora"], f["vta_aerolinea"], f["vta_aprox"] = _hhmm(o["salida"]), o["aerolineas"], True
                 break
+
+
+DIAS_HABITUAL = 30
+
+
+def nivel_precio(precios: list[float], actual: float, corridas: int) -> dict | None:
+    """¿El precio de hoy es bajo, habitual o alto? Con los precios reales que se vieron para esta búsqueda
+    (todas las fechas, últimos DIAS_HABITUAL días): habitual = entre el percentil 25 y el 75."""
+    if len(precios) < 20 or corridas < 2:
+        return None   # poca historia: el rango no sería confiable
+    p25, med, p75 = statistics.quantiles(precios, n=4)
+    nivel = "bajo" if actual < p25 - 0.5 else "alto" if actual > p75 + 0.5 else "habitual"
+    return {"nivel": nivel, "actual": actual, "desde": p25, "hasta": p75, "mediana": med,
+            "minimo": min(min(precios), actual), "maximo": max(precios),
+            "diferencia": med - actual, "n": len(precios), "corridas": corridas, "dias": DIAS_HABITUAL}
 
 
 def mejores_por_combo(filas: list[dict]) -> tuple[list[dict], list[dict]]:
@@ -198,6 +214,9 @@ def datos_busqueda(con: sqlite3.Connection, nombre: str, meta: dict | None) -> d
     hist = db.minimo_historico(con, nombre, filtro=filtro)
     hist_prev = db.minimo_historico(con, nombre, antes_de_corrida=ult["id"], filtro=filtro)
     mejor = base[0]
+    recientes, n_rec = db.precios_recientes(
+        con, nombre, (dt.date.today() - dt.timedelta(days=DIAS_HABITUAL)).isoformat(), filtro)
+    nivel = nivel_precio(recientes, mejor["precio"], n_rec)
     prev_best = prev_stats["minimo"] if prev_stats else None
 
     # --- ofertas cambiando días: cada una se compara con el viaje de la duración pedida que sale EL MISMO
@@ -272,6 +291,7 @@ def datos_busqueda(con: sqlite3.Connection, nombre: str, meta: dict | None) -> d
         "mejor_flex": ofertas[0] if ofertas and ofertas[0]["precio"] < mejor["precio"] else None,
         "hist_min": hist,
         "hist_prev": hist_prev,
+        "nivel_precio": nivel,
         "top": base[:30],
         "ofertas": ofertas[:20],
         "por_mes": [por_mes[m] for m in sorted(por_mes)],

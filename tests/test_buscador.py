@@ -316,3 +316,15 @@ def test_alerta_cuando_vuelve_al_minimo_historico():
         assert "mínimo" in asunto and "Salida" in html
         c4 = corrida(72)                   # sigue igual: no repite el aviso
         assert mailer.detectar_mejora(con, "VueltaMin", c4) is None
+
+
+def test_nivel_de_precio_bajo_habitual_alto():
+    from src.reporting.metrics import nivel_precio
+    precios = [100 + i for i in range(100)]          # habitual ≈ 125–175
+    assert nivel_precio(precios, 72, 5)["nivel"] == "bajo"
+    assert nivel_precio(precios, 150, 5)["nivel"] == "habitual"
+    assert nivel_precio(precios, 190, 5)["nivel"] == "alto"
+    n = nivel_precio(precios, 72, 5)
+    assert n["desde"] < n["mediana"] < n["hasta"] and n["diferencia"] > 0
+    assert nivel_precio(precios[:10], 72, 5) is None, "con pocos precios no se muestra"
+    assert nivel_precio(precios, 72, 1) is None, "con una sola corrida no hay 'habitual'"

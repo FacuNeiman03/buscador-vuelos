@@ -257,6 +257,26 @@ def evolucion(con: sqlite3.Connection, busqueda: str, filtro=None) -> list[dict]
     return out
 
 
+def precios_recientes(con: sqlite3.Connection, busqueda: str, desde: str, filtro=None) -> tuple[list[float], int]:
+    """Precio/persona más barato de cada combinación de fechas en cada corrida desde `desde` (YYYY-MM-DD).
+    Devuelve (precios, cantidad de corridas). Es la base del "precio habitual" de la búsqueda."""
+    precios, n = [], 0
+    for c in corridas_utiles(con, busqueda):
+        if c["inicio"][:10] < desde:
+            continue
+        por_combo: dict[tuple, float] = {}
+        for r in con.execute(
+                "SELECT precio*1.0/pasajeros pp, ida, vuelta, origen, destino, COALESCE(equipaje,0) equipaje "
+                "FROM precios WHERE corrida_id=? AND COALESCE(flexible,0)=0", (c["id"],)):
+            if _en(r, filtro):
+                k = (r["ida"], r["vuelta"], r["origen"], r["destino"], r["equipaje"])
+                por_combo[k] = min(por_combo.get(k, r["pp"]), r["pp"])
+        if por_combo:
+            n += 1
+            precios.extend(por_combo.values())
+    return precios, n
+
+
 def compactar(con: sqlite3.Connection, dias: int = 14) -> int:
     """Achica la base: en corridas de hace más de `dias` deja solo la opción más barata de cada combinación
     (fechas, ruta, equipaje, tipo). Los reportes de corridas viejas (evolución, mínimo histórico, alertas)

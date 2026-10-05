@@ -308,6 +308,24 @@ _aviso_formato = threading.Lock()
 _avisado_formato = False
 
 
+_muestra_guardada = False
+
+
+def _guardar_muestra(html_txt: str, etiqueta: str) -> None:
+    """Guarda UNA respuesta real de Google por corrida (data/muestra_google.html, va a la rama "datos").
+    Sirve para analizar datos extra que trae la página (por ejemplo el "precio habitual" de Google)."""
+    global _muestra_guardada
+    if _muestra_guardada:
+        return
+    _muestra_guardada = True
+    try:
+        from .paths import DATA_DIR
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        (DATA_DIR / "muestra_google.html").write_text(f"<!-- {etiqueta} -->\n" + html_txt, encoding="utf-8")
+    except OSError:
+        pass
+
+
 def _guardar_diagnostico(html_txt: str, info: dict, etiqueta: str) -> None:
     """Guarda el último HTML que vino 'sin vuelos' para poder revisarlo, y avisa una sola vez
     si Google mandó opciones que el parser no supo leer (señal de que cambió el formato)."""
@@ -399,7 +417,7 @@ class FastFlightsProveedor(Proveedor):
         from fast_flights.fetcher import URL
 
         q = _armar_query(b, g, origen, destino, ida, vuelta)
-        link = q.url()
+        link = "https://www.google.com/travel/flights/search?" + urllib.parse.urlencode(params_google(q, g))
         ultimo: Exception | None = None
         for intento in range(3):
             try:
@@ -408,6 +426,8 @@ class FastFlightsProveedor(Proveedor):
                 ops = parsear_html_google(html, info)
                 if not ops:
                     _guardar_diagnostico(html, info, f"{origen}-{destino} {ida}" + (f" / {vuelta}" if vuelta else ""))
+                elif vuelta:
+                    _guardar_muestra(html, f"{origen}-{destino} {ida} / {vuelta}")
                 return ops, link
             except Bloqueado as e:
                 ultimo = e

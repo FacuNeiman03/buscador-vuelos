@@ -152,7 +152,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -q --orphan datos-tmp
           git rm -rfq --cached . 2>/dev/null || true
-          for f in data/historial.db data/estado.json reportes; do [ -e "$f" ] && git add -f "$f"; done
+          for f in data/historial.db data/estado.json data/muestra_google.html reportes; do [ -e "$f" ] && git add -f "$f"; done
           if git diff --cached --quiet; then echo "Nada para guardar"; exit 0; fi
           git commit -q -m "Datos $(date +'%Y-%m-%d %H:%M') [skip ci]"
           git push -f origin datos-tmp:datos

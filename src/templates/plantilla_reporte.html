@@ -280,6 +280,17 @@ button,input,select{font:inherit;color:inherit}
 .extlink{display:inline-flex;align-items:center;gap:4px;font-weight:500;font-size:14px;white-space:nowrap}
 .extlink .i{width:14px;height:14px}
 
+/* ¿Precio bajo, habitual o alto? (como el indicador de Google Flights, con los precios que juntamos) */
+.nivel{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s4);align-items:center;margin-bottom:var(--s4)}
+@media (max-width:820px){ .nivel{grid-template-columns:1fr} }
+.nivel h3{margin:0 0 6px;font-size:18px;line-height:1.35}
+.nivel .bajo{color:var(--good)} .nivel .habitual{color:var(--warn)} .nivel .alto{color:var(--bad)}
+.nbar{position:relative;height:64px;margin:0 8px}
+.nbar .seg{position:absolute;top:34px;height:6px;border-radius:3px}
+.nbar .seg.g{background:var(--good)} .nbar .seg.y{background:#e3b341} .nbar .seg.r{background:var(--bad)}
+.nbar .tick{position:absolute;top:46px;transform:translateX(-50%);font-size:12px;color:var(--text-3);white-space:nowrap}
+.nbar .pin{position:absolute;top:31px;width:12px;height:12px;border-radius:50%;background:var(--surface);border:3px solid var(--text);transform:translateX(-50%)}
+.nbar .tip{position:absolute;top:0;transform:translateX(-50%);background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:3px 10px;font-size:12.5px;font-weight:600;white-space:nowrap}
 .kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s3);align-content:start}
 @media (min-width:640px) and (max-width:980px){ .kpis{grid-template-columns:repeat(4,minmax(0,1fr))} .kpi.wide{grid-column:span 2} }
 @media (min-width:981px){ .kpis{grid-auto-rows:1fr} }
@@ -1015,6 +1026,27 @@ function iniciarCarrusel(){
   track.addEventListener("click", e => { if(movido){ e.preventDefault(); e.stopPropagation(); movido = false; } }, true);
   window.onresize = () => { track.style.scrollBehavior = "auto"; track.scrollLeft = act * paso(); track.style.scrollBehavior = ""; };
 }
+function nivelCard(b){
+  const n = b.nivel_precio; if(!n) return "";
+  const cur = b.moneda, lo = n.minimo, hi = Math.max(n.hasta*1.02, Math.min(n.maximo, n.hasta + (n.hasta - lo)));
+  const pos = v => Math.max(0, Math.min(100, (v - lo) / (hi - lo) * 100));
+  const txt = {bajo:"bajo", habitual:"habitual", alto:"alto"}[n.nivel];
+  const dif = Math.abs(n.diferencia) >= 1 ? ` (${money(Math.abs(n.diferencia),cur)} ${n.diferencia>0?"más barato":"más caro"} de lo habitual)` : "";
+  const p = pos(n.actual), clamp = Math.max(12, Math.min(88, p));
+  return `<section class="card nivel" aria-label="Nivel del precio">
+    <div><h3>${money(n.actual,cur)} es un precio <span class="${n.nivel}">${txt}</span>${dif}</h3>
+      <p class="hint" style="margin:0">En esta búsqueda los precios suelen estar entre <b>${money(n.desde,cur)}</b> y <b>${money(n.hasta,cur)}</b> por persona.
+      Calculado con ${n.n.toLocaleString("es-AR")} precios reales de ${n.corridas} búsquedas de los últimos ${n.dias} días (todas las fechas del rango).</p></div>
+    <div class="nbar" role="img" aria-label="${esc(`${money(n.actual,cur)}: precio ${txt}. Habitual entre ${money(n.desde,cur)} y ${money(n.hasta,cur)}`)}">
+      <span class="seg g" style="left:0;width:${pos(n.desde)}%"></span>
+      <span class="seg y" style="left:${pos(n.desde)}%;width:${pos(n.hasta)-pos(n.desde)}%"></span>
+      <span class="seg r" style="left:${pos(n.hasta)}%;right:0"></span>
+      <span class="tick" style="left:${pos(n.desde)}%">${money(n.desde,cur)}</span>
+      <span class="tick" style="left:${pos(n.hasta)}%">${money(n.hasta,cur)}</span>
+      <span class="pin" style="left:${p}%"></span>
+      <span class="tip" style="left:${clamp}%">${money(n.actual,cur)} · ${txt}</span>
+    </div></section>`;
+}
 function kpis(b){
   const m=b.mejor, s=b.stats, hm=b.hist_min, cur=b.moneda, mf=b.mejor_flex;
   const tipo = b.ida_vuelta ? "ida y vuelta" : "solo ida";
@@ -1109,6 +1141,7 @@ function render(i){
   $("#contenido").innerHTML = cab + `
   ${avisos.join("")}
   <section class="hero" aria-label="Indicadores">${mejorCard(b)}${kpis(b)}</section>
+  ${nivelCard(b)}
   ${estrategiasCard(b)}
   ${b.exploracion && b.exploracion.length ? tablaExploracion(b) : ""}
   <section class="card" aria-labelledby="hDia"><div class="card-h"><div><h3 id="hDia">Precio más barato según fecha de salida</h3>
