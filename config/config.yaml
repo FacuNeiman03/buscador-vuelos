@@ -54,7 +54,7 @@ busquedas:
     tolerancia_dias: 5
     ahorro_minimo_pct: 5
     alerta_precio_persona: 100
-    equipaje: mano
+    equipaje: [ninguno, mano]
 
   - nombre: China
     activa: true
