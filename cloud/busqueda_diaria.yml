@@ -129,8 +129,9 @@ jobs:
           VUELOS_URL_REPORTE: ${{ vars.VUELOS_URL_WEB }}
           VUELOS_URL_WEB: ${{ vars.VUELOS_URL_WEB }}
           VUELOS_MAX_CONSULTAS: ${{ vars.VUELOS_MAX_CONSULTAS }}
-          # IPs de datacenter: Google es más estricto; por defecto va prudente (se puede cambiar con la variable)
-          VUELOS_VELOCIDAD: ${{ vars.VUELOS_VELOCIDAD || 'prudente' }}
+          # normal = 3 consultas en paralelo. Se frena sola si Google empieza a poner trabas (ritmo adaptativo);
+          # en las primeras ~4.000 consultas desde la nube no hubo ni un error con prudente. Variable para cambiarlo.
+          VUELOS_VELOCIDAD: ${{ vars.VUELOS_VELOCIDAD || 'normal' }}
           # los inputs se pasan por variables de entorno (nunca interpolados en el script: evita inyección)
           EVENTO: ${{ github.event_name }}
           IN_BUSQUEDA: ${{ inputs.busqueda }}
