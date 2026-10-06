@@ -113,6 +113,11 @@ button,input,select{font:inherit;color:inherit}
 .logo .i{width:20px;height:20px}
 .brand h1{margin:0;font-size:17px;font-weight:650;letter-spacing:-.01em;line-height:1.2}
 .brand .gen{display:block;font-size:12px;color:var(--text-3)}
+.live{display:inline-flex;align-items:center;gap:6px;margin-top:3px;font-size:12px;font-weight:600;color:var(--info);text-decoration:none}
+.live::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;animation:latido 1.6s ease-in-out infinite}
+.live.cola{color:var(--text-3)} .live.listo{color:var(--good)} .live.listo::before{animation:none}
+@keyframes latido{0%,100%{opacity:1}50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){ .live::before{animation:none} }
 .toolbar{display:flex;gap:6px;align-items:center}
 @media (max-width:640px){
   .brand{gap:10px}
@@ -544,7 +549,7 @@ dialog[open]{animation:aparecer .18s var(--ease)}
   <header class="topbar">
     <div class="brand">
       <span class="logo" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M3.5 13.5l4 1 3-3-6.5-4 1.5-1.5 8.5 2 3.2-3.2a1.8 1.8 0 0 1 2.5 2.5L16.5 10.5l2 8.5-1.5 1.5-4-6.5-3 3 1 4-1.5 1.5-2-3.5-3.5-2z"/></svg></span>
-      <div><h1>Vuelos baratos</h1><span class="gen" id="gen"></span></div>
+      <div><h1>Vuelos baratos</h1><span class="gen" id="gen"></span><span class="live" id="live" role="status" aria-live="polite" hidden></span></div>
     </div>
     <nav class="toolbar" id="nav" aria-label="Acciones generales"></nav>
   </header>
@@ -1716,7 +1721,34 @@ $("#nav").innerHTML =
   `<a class="btn btn-ghost" href="suscribirse" id="lnkSus" hidden title="Alertas por email">${ico("mail")}<span class="t-lbl">Alertas por email</span></a>` +
   (indiv || !hayBusq ? "" : `<a class="btn" id="lnkInd" href="#" title="Abrir sólo esta búsqueda">${ico("ext")}<span class="t-lbl">Abrir sólo esta</span></a>`) +
   `<button class="btn btn-primary" onclick="abrirForm(null)">${ico("plus")}<span class="t-lbl">Nueva<span class="t-extra"> búsqueda</span></span></button>`;
-hayApi().then(ok => { if(ok) $("#lnkSus").hidden = false; });
+hayApi().then(ok => { if(ok){ $("#lnkSus").hidden = false; vigilarNube(); } });
+
+/* Indicador chico "Buscando … · hace N min" mientras hay una búsqueda corriendo en la nube */
+function haceTxt(iso){
+  const m = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  return m < 1 ? "recién" : m < 60 ? `hace ${m} min` : `hace ${Math.floor(m/60)} h ${m%60} min`;
+}
+async function vigilarNube(){
+  let habia = false;
+  const tick = async () => {
+    if(document.hidden) return;
+    let e; try{ e = await (await fetch("/api/estado",{cache:"no-store"})).json(); }catch(err){ return; }
+    const el = $("#live"), r = e && e.en_curso;
+    if(r){
+      habia = true;
+      const t = r.titulo || "", quien = t.startsWith("Buscar ") ? t.slice(7) : "precios (búsqueda automática)";
+      const cola = /queued|waiting|pending|requested/.test(r.estado);
+      el.className = "live" + (cola ? " cola" : "");
+      el.textContent = cola ? `En cola en GitHub: ${quien} · ${haceTxt(r.iniciado)}` : `Buscando ${quien} · ${haceTxt(r.iniciado)}`;
+      el.title = "Búsqueda en la nube (GitHub Actions). La página se actualiza cuando termine.";
+      el.hidden = false;
+    } else if(habia){
+      el.className = "live listo"; el.textContent = "Terminó la búsqueda · tocá para recargar"; el.title = "";
+      el.onclick = () => location.reload(); el.style.cursor = "pointer"; el.hidden = false;
+    } else el.hidden = true;
+  };
+  tick(); setInterval(tick, 30000);
+}
 if(DATOS && DATOS.generado) $("#gen").textContent = "Generado " + DATOS.generado;
 if(!hayBusq){
   $("#contenido").innerHTML = `<div class="card" style="margin-top:var(--s6)"><div class="empty"><span class="em-ico">${ico("plane")}</span><h3>Todavía no hay búsquedas</h3>

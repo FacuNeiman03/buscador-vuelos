@@ -146,3 +146,26 @@ def test_confirmacion_en_la_nube(monkeypatch):
     token = re.search(r"token=([^\"&]+)", mails[0][1]).group(1)
     subs.confirmar(token)
     assert any(s["email"] == "nube@b.com" for s in subs.de_busqueda("Verano"))
+
+
+def test_indicador_busqueda_en_curso(monkeypatch):
+    import time
+    import src.web.app as w
+    from src.core import github_sync as gh
+    monkeypatch.setenv("GITHUB_TOKEN", "t")
+    monkeypatch.setenv("GITHUB_REPOSITORY", "u/r")
+    monkeypatch.setenv("VUELOS_EJECUCION", "github")
+    monkeypatch.setattr(w, "_regenerar", lambda: None)
+    monkeypatch.setattr(gh, "bajar_archivo", lambda ruta: False)
+    monkeypatch.setattr(gh, "sha_datos", lambda: None)
+    hace = lambda s: time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - s))  # noqa: E731
+    runs = [{"id": 2, "evento": "schedule", "estado": "in_progress", "conclusion": None, "creado": hace(20),
+             "iniciado": hace(20), "url": "u2", "titulo": "Búsqueda programada"},          # recién: se ignora
+            {"id": 1, "evento": "workflow_dispatch", "estado": "in_progress", "conclusion": None,
+             "creado": hace(1800), "iniciado": hace(1800), "url": "u1", "titulo": "Buscar Cipolletti"}]
+    monkeypatch.setattr(gh, "ejecuciones", lambda n=5: runs)
+    w.trabajo.corriendo = False
+    w.nube.consultado = 0
+    with cliente() as c:
+        e = c.get("/api/estado").json()
+    assert e["en_curso"]["titulo"] == "Buscar Cipolletti"

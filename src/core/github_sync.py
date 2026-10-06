@@ -125,7 +125,7 @@ def ejecuciones(n: int = 5) -> list[dict]:
         return []
     return [{"id": r["id"], "evento": r["event"], "estado": r["status"], "conclusion": r.get("conclusion"),
              "creado": r["created_at"], "iniciado": r.get("run_started_at") or r["created_at"],
-             "url": r["html_url"]} for r in j.get("workflow_runs", [])]
+             "url": r["html_url"], "titulo": r.get("display_title") or ""} for r in j.get("workflow_runs", [])]
 
 
 def sha_datos() -> str | None:

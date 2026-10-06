@@ -143,9 +143,12 @@ def _actualizar_estado_nube() -> None:
         return
     nube.consultado = time.time()
     runs = gh.ejecuciones(10)
+    # Para el indicador de la página: la búsqueda en curso más vieja (manual o programada). Las programadas
+    # sin nada para buscar duran segundos: se ignoran las de menos de un minuto.
+    activas = [r for r in runs if r["estado"] != "completed"
+               and (r["evento"] == "workflow_dispatch" or time.time() - _ts(r["iniciado"]) > 60)]
+    nube.en_curso = activas[-1] if activas else None
     if not trabajo.corriendo:
-        nube.en_curso = next((r for r in runs if r["estado"] != "completed"
-                              and time.time() - _ts(r["iniciado"]) > 120), None)
         return
     if nube.disparo is None:
         return
