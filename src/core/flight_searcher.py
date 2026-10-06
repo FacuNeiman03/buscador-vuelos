@@ -602,7 +602,7 @@ def estimar(b: dict, hoy: dt.date | None = None, g: dict | None = None) -> dict:
         out["exploracion"] = len(destinos) * len(muestras_exploracion(reglas, combos))
         out["destinos_detalle"] = int(b["explorar_top"])
     nd = out["destinos_detalle"]
-    if estrategia == "ida_vuelta":
+    if estrategia in ("ida_vuelta", "ambas"):
         # 1ra pasada + estimación de las pasadas 2 (día por día) y 3 (± días) alrededor de las mejores fechas
         n_top = min(int(b.get("refinar_top", 6)), len(combos))
         paso, tol = max(1, int(b.get("paso_dias", 3))), int(b.get("tolerancia_dias", 0) or 0)
@@ -611,14 +611,14 @@ def estimar(b: dict, hoy: dt.date | None = None, g: dict | None = None) -> dict:
         p3 = int(n_top * 3 * (2 * tol + 1) * 0.75) if tol > 0 and es_ida_vuelta(b) else 0
         out["refinamiento"] = (p2 + p3) * n_orig * nd
         out["detalle"] = len(combos) * n_orig * nd + out["refinamiento"]
-    else:
+    if estrategia != "ida_vuelta":
         plan = estrategias.plan_tramos(reglas, b) if combos else None
         out["dias_ida"] = len(plan.idas) if plan else 0
         out["dias_vuelta"] = len(plan.vueltas) if plan else 0
         out["tramos"] = (out["dias_ida"] + out["dias_vuelta"]) * n_orig * nd
         if estrategia == "mixta" and combos:
             out["verificacion"] = min(int(b.get("verificar_top", 8)), len(combos) * nd) * n_orig
-        out["detalle"] = out["tramos"] + out["verificacion"]
+        out["detalle"] = out.get("detalle", 0) + out["tramos"] + out["verificacion"]
     if usa_escala_separada(b) and combos:
         out["hubs"] = _hubs(b, destinos[:1])
         out["escala"] = min(int(b.get("escala_top", 4)), len(combos)) * len(out["hubs"]) * (3 * n_orig + 3)
@@ -1082,6 +1082,10 @@ class Corrida:
                     log.info(f"  -- Equipaje: {self.b.get('equipaje')} --")
                 if estrategia == "ida_vuelta":
                     self.pasadas_ida_vuelta(iniciales)
+                elif estrategia == "ambas":
+                    # las dos búsquedas completas, en todas las fechas: ida y vuelta Y dos pasajes sueltos
+                    self.pasadas_ida_vuelta(iniciales)
+                    self.solo_ida()
                 else:
                     self.solo_ida()
                     if estrategia == "mixta":
@@ -1090,7 +1094,7 @@ class Corrida:
                     self.escala_separada()
                 if self.nivel > 0 and 0 not in niveles:
                     self.comparar_sin_equipaje()   # con varios equipajes ya está el precio "sin equipaje" completo
-                if es_ida_vuelta(b) and estrategia in ("ida_vuelta", "mixta"):
+                if es_ida_vuelta(b) and estrategia in ("ida_vuelta", "mixta", "ambas"):
                     self.horarios_vuelta()
         except _Parar:
             pass

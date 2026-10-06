@@ -165,3 +165,36 @@ def test_duracion_con_conexion():
     t = [{"duracion_min": 600, "salida": "2027-01-05 20:00", "llegada": "2027-01-06 10:00"},
          {"duracion_min": 800, "salida": "2027-01-06 16:00", "llegada": "2027-01-07 10:00"}]
     assert estrategias.duracion_total(t) == 600 + 360 + 800
+
+
+def test_ambas_hace_las_dos_busquedas_completas_y_muestra_las_dos():
+    cfg = _config(estrategia="ambas")
+    b, prov, d = _correr(cfg, estrategia="ambas")
+    rt = {(c[2], c[3]) for c in prov.consultas if c[3] is not None}
+    combos = {(i, v) for i, v in ReglasFechas(b).iniciales()}
+    assert combos <= rt, "consulta el ida y vuelta en TODAS las fechas (no solo en las mejores)"
+    assert any(c[3] is None for c in prov.consultas), "y también los pasajes de solo ida"
+    assert d["por_tipo"]["ida_vuelta"] == 150 and d["por_tipo"]["dos_solo_ida"] == (100 + 90) / 2
+    assert set(d["tops_tipo"]) == {"ida_vuelta", "dos_solo_ida"}
+    assert all(c["tipo"] == "ida_vuelta" for c in d["tops_tipo"]["ida_vuelta"])
+
+
+def test_por_tipo_no_esconde_el_ida_y_vuelta_cuando_empata():
+    """Bug real: con 2 pasajes a 60 y el ida y vuelta también a 60 en las mismas fechas, el cuadro
+    decía 'ida y vuelta 138' porque miraba solo la opción que quedaba por fecha."""
+    cfg = _config()
+    b = cfg.buscar("Test")
+    with db.conexion() as con:
+        cid = db.iniciar_corrida(con, "Test", "t")
+        i, v = INI + dt.timedelta(days=3), INI + dt.timedelta(days=10)
+        sep = {**op(120, "JetSMART", i.isoformat()), "tipo": "dos_solo_ida",
+               "detalle": {"tramos": [], "tipo": "dos_solo_ida"}}
+        db.guardar_opciones(con, cid, "Test", "x", "EZE", "NQN", i, v, [sep], "USD", 2, "l", flexible=False)
+        db.guardar_opciones(con, cid, "Test", "x", "EZE", "NQN", i, v, [op(120, "JetSMART", i.isoformat())],
+                            "USD", 2, "l", flexible=False)
+        db.guardar_opciones(con, cid, "Test", "x", "EZE", "NQN", i + dt.timedelta(1), v + dt.timedelta(1),
+                            [op(276, "JetSMART", i.isoformat())], "USD", 2, "l", flexible=False)
+        db.finalizar_corrida(con, cid, 3, 0, db.COMPLETA)
+        d = datos_busqueda(con, "Test", b)
+    assert d["por_tipo"] == {"dos_solo_ida": 60, "ida_vuelta": 60}
+    assert d["mejor"]["tipo"] == "ida_vuelta", "a igual precio se prefiere un solo pasaje"

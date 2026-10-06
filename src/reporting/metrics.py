@@ -205,10 +205,17 @@ def datos_busqueda(con: sqlite3.Connection, nombre: str, meta: dict | None) -> d
         for c in base + flex:
             c["sin_equipaje"] = sin_eq.get((c["ida"], c["vuelta"], c["destino"], c["tipo"]))
 
-    # --- mejor precio según cómo se arma el pasaje ---
+    # --- mejor precio según cómo se arma el pasaje: sobre TODAS las filas, no sobre `base` (que deja una sola
+    #     opción por fechas y escondía el ida y vuelta cuando empataba con dos pasajes sueltos) ---
     por_tipo: dict = {}
-    for c in base:
-        por_tipo[c["tipo"]] = min(por_tipo.get(c["tipo"], float("inf")), c["precio"])
+    tops_tipo: dict = {}
+    for f in filas:
+        if not f["flexible"]:
+            por_tipo[f["tipo"]] = min(por_tipo.get(f["tipo"], float("inf")), f["precio"])
+    if len(por_tipo) > 1:
+        for t in por_tipo:
+            bt, _ = mejores_por_combo([f for f in filas if f["tipo"] == t])
+            tops_tipo[t] = bt[:30]
 
     stats = estadisticas([c["precio"] for c in base])
     hist = db.minimo_historico(con, nombre, filtro=filtro)
@@ -300,6 +307,7 @@ def datos_busqueda(con: sqlite3.Connection, nombre: str, meta: dict | None) -> d
         "evolucion": db.evolucion(con, nombre, filtro),
         "novedad": novedad,
         "por_tipo": por_tipo,
+        "tops_tipo": tops_tipo,
         "estrategia": b.get("estrategia", "ida_vuelta"),
         "equipaje": b.get("equipaje", "ninguno"),
         "escala_separada": bool(b.get("escala_separada")),

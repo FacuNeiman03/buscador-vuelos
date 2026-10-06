@@ -19,7 +19,7 @@ from .paths import CONFIG_PATH
 
 CLASES = {"economy", "premium-economy", "business", "first"}
 TIPOS = {"ida_vuelta", "solo_ida"}
-ESTRATEGIAS = {"ida_vuelta", "solo_ida", "mixta"}
+ESTRATEGIAS = {"ida_vuelta", "solo_ida", "mixta", "ambas"}
 EQUIPAJES = {"ninguno": 0, "mano": 1, "despachado": 2}
 PROVEEDORES = {"auto", "fast_flights", "serpapi"}
 MODOS_ABRIR = {"siempre", "si_hay_novedad", "nunca"}

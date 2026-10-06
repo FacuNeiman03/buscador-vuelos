@@ -219,7 +219,8 @@ def corridas_utiles(con: sqlite3.Connection, busqueda: str) -> list[sqlite3.Row]
 
 def filas_corrida(con: sqlite3.Connection, corrida_id: int) -> list[dict]:
     filas = [dict(r) for r in con.execute(
-        "SELECT * FROM precios WHERE corrida_id=? ORDER BY precio*1.0/pasajeros, escalas, duracion_min",
+        "SELECT * FROM precios WHERE corrida_id=? ORDER BY precio*1.0/pasajeros, "
+        "CASE WHEN COALESCE(tipo, 'ida_vuelta') = 'ida_vuelta' THEN 0 ELSE 1 END, escalas, duracion_min",
         (corrida_id,))]
     for f in filas:
         f["tipo"] = f.get("tipo") or "ida_vuelta"

@@ -624,6 +624,7 @@ dialog[open]{animation:aparecer .18s var(--ease)}
               <label class="ocard"><input type="radio" name="f_estr" value="ida_vuelta" checked><b>Solo ida y vuelta (como Google)<span class="def">predeterminada</span></b><span class="od"></span></label>
               <label class="ocard"><input type="radio" name="f_estr" value="mixta"><b>Inteligente: 2 pasajes de ida + ida y vuelta</b><span class="od"></span></label>
               <label class="ocard"><input type="radio" name="f_estr" value="solo_ida"><b>Solo 2 pasajes de ida (menos consultas)</b><span class="od"></span></label>
+              <label class="ocard"><input type="radio" name="f_estr" value="ambas"><b>Ambas completas: ida y vuelta + 2 pasajes de ida</b><span class="od"></span></label>
             </div></div>
           <div class="field-eq"><span class="flabel" id="lblEq">Equipaje que llevás <small>(podés elegir varios)</small></span>
             <div class="eqs" role="group" aria-labelledby="lblEq">
@@ -897,7 +898,7 @@ function estrategiasCard(b){
   if(tipos.length < 2 && !avisoEscala && !eq) return "";
   const mejor = Math.min(...Object.values(pt));
   return `<section class="card" aria-labelledby="hComo"><div class="card-h"><div><h3 id="hComo">Cómo conviene comprar</h3>
-    <p class="hint">${eq?`<b>${eq}</b> `:""}Mejor precio por persona según cómo se arma el pasaje (mismas fechas y destinos).</p></div></div>
+    <p class="hint">${eq?`<b>${eq}</b> `:""}Mejor precio por persona según cómo se arma el pasaje.${b.estrategia==="mixta"?" Con la estrategia Inteligente el ida y vuelta se consulta solo en las mejores fechas; para comparar en todas usá «Ambas completas».":""}</p></div></div>
     ${tipos.length>1?`<div class="compare">${["ida_vuelta","dos_solo_ida","escala_separada"].filter(t=>t in pt).map(t=>`
       <div class="opt ${pt[t]===mejor?"win":""}"><span class="label">${ico(TIPO_IC[t])}${TIPOS[t]}</span><span class="v">${money(pt[t],b.moneda)}</span>
       <span class="d">${pt[t]===mejor?`<span class="pill">${ico("check")}la opción más barata</span>`:"+"+money(pt[t]-mejor,b.moneda)+" más caro"}</span></div>`).join("")}</div>`:""}
@@ -1144,6 +1145,17 @@ function vista(i){
   return {...vs[k].datos, variantes: vs, eqK: k, slug: b.slug, config: b.config, rango: b.rango, proxima: b.proxima,
           nombre: b.nombre, activa: b.activa, en_config: b.en_config, ruta: b.ruta || vs[k].datos.ruta};
 }
+/* Top: todas las opciones o solo un tipo de pasaje (cuando la búsqueda trae ida y vuelta Y pasajes sueltos) */
+const tipoElegido = {};
+function topLista(b){ const t = tipoElegido[b.slug]; return (t && b.tops_tipo && b.tops_tipo[t]) || b.top; }
+function elegirTipo(t){ tipoElegido[DATOS.busquedas[actual].slug] = t; render(actual); }
+function selectorTipo(b){
+  const tt = Object.keys(b.tops_tipo || {}); if(tt.length < 2) return "";
+  const sel = tipoElegido[b.slug] || "";
+  const op = [["", "Todas"], ...["ida_vuelta","dos_solo_ida","escala_separada"].filter(t => tt.includes(t)).map(t => [t, TIPOS[t]])];
+  return `<div class="seg-eq" role="radiogroup" aria-label="Tipo de pasaje">${op.map(([v,txt]) =>
+    `<button type="button" role="radio" aria-checked="${v===sel}" class="${v===sel?"on":""}" onclick="elegirTipo('${v}')">${esc(txt)}</button>`).join("")}</div>`;
+}
 function elegirEquipaje(k){ eqElegido[DATOS.busquedas[actual].slug] = k; render(actual); }
 function selectorEquipaje(b){
   if(!b.variantes || b.variantes.length < 2) return "";
@@ -1180,7 +1192,7 @@ function render(i){
   ${b.ofertas.length?`<section class="card" aria-labelledby="hOf"><div class="card-h"><div><h3 id="hOf">Ofertas cambiando unos días</h3>
     <p class="hint">Viajes de otra duración que salen más baratos que el de ${durTxt} que sale el mismo día. * Horario de vuelta aproximado (pasá el mouse).</p></div></div>${tablaOfertas(b.ofertas,b)}</section>`:""}
   <section class="card" aria-labelledby="hMes"><div class="card-h"><div><h3 id="hMes">Mejor opción por mes</h3><p class="hint">Para comparar distintos momentos del año${durTxt?" · "+durTxt:""}.</p></div></div>${tabla(b.por_mes,b,true)}</section>
-  <section class="card" aria-labelledby="hTop"><div class="card-h"><div><h3 id="hTop">Top ${b.top.length} más baratas</h3><p class="hint">${durTxt?durTxt+" · ":""}${b.consultas} consultas en la última corrida · ${plural(b.corridas,"corrida")} guardada${b.corridas==1?"":"s"}. Precios del ${esc(b.actualizado||"")}: en Google pueden haber cambiado desde entonces.${b.ida_vuelta?" * Horario de vuelta aproximado.":""}</p></div></div>${tabla(b.top,b,false)}</section>
+  <section class="card" aria-labelledby="hTop"><div class="card-h"><div><h3 id="hTop">Top ${topLista(b).length} más baratas</h3>${selectorTipo(b)}<p class="hint">${durTxt?durTxt+" · ":""}${b.consultas} consultas en la última corrida · ${plural(b.corridas,"corrida")} guardada${b.corridas==1?"":"s"}. Precios del ${esc(b.actualizado||"")}: en Google pueden haber cambiado desde entonces.${b.ida_vuelta?" * Horario de vuelta aproximado.":""}</p></div></div>${tabla(topLista(b),b,false)}</section>
   <section class="card" aria-labelledby="hEvo"><div class="card-h"><div><h3 id="hEvo">Evolución del precio</h3><p class="hint">Mínimo, promedio y máximo por persona encontrados en cada corrida.</p></div>
     ${b.evolucion.length>=2?`<div class="legend" aria-hidden="true"><span><i style="border-color:var(--accent)"></i>Mínimo</span><span><i class="dash" style="border-color:var(--text-3)"></i>Promedio</span><span><i style="border-color:var(--bad)"></i>Máximo</span></div>`:""}</div>
     ${b.evolucion.length>=2?'<div class="chart"><canvas id="c2" role="img" aria-label="Gráfico de evolución del precio por corrida"></canvas></div>':'<div class="soft-empty">Aparece a partir de la segunda corrida.</div>'}</section>`;
@@ -1547,7 +1559,8 @@ const pkOrigen = new Picker($("#pkOrigen"), {conPaises:false});
 const pkDestino = new Picker($("#pkDestino"), {conPaises:true});
 const pkHubs = new Picker($("#pkHubs"), {conPaises:false});
 const AYUDA_ESTR = {
-  mixta: "Busca cada día de ida y de vuelta por separado (pueden ser aerolíneas distintas o volver a otro aeropuerto) y confirma el ida y vuelta en las mejores fechas.",
+  mixta: "Busca cada día de ida y de vuelta por separado (pueden ser aerolíneas distintas o volver a otro aeropuerto) y consulta el ida y vuelta solo en las 8 mejores fechas.",
+  ambas: "Hace las dos búsquedas completas en TODAS las fechas: el ida y vuelta de un solo pasaje y los pasajes de ida sueltos. Te muestra las dos. Es la que más consultas usa.",
   solo_ida: "Solo pasajes de ida sueltos: la opción que menos consultas usa. Ideal para vuelos nacionales y low cost.",
   ida_vuelta: "Solo pasajes de ida y vuelta. En vuelos largos suele ser lo más barato, pero no combina aerolíneas.",
 };
