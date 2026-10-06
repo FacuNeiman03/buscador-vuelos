@@ -41,7 +41,7 @@ busquedas:
     origenes: [AEP, EZE]   # Buenos Aires: Aeroparque y Ezeiza
     destinos: [NQN]        # Cipolletti no tiene aeropuerto: Neuquén queda a ~20 min
     tipo: ida_vuelta
-    estrategia: mixta      # ida_vuelta = pasaje ida y vuelta clásico · mixta = también prueba 2 pasajes sueltos
+    estrategia: ambas      # ida_vuelta = pasaje ida y vuelta clásico · mixta = también prueba 2 pasajes sueltos
     pasajeros: 2
     clase: economy
     max_escalas: 0
