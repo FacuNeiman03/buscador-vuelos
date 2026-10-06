@@ -47,8 +47,8 @@ busquedas:
     max_escalas: 0
     max_duracion_horas: 8
     viajar_desde: "2027-01-01"   # por trabajo solo se puede viajar entre enero y marzo:
-    viajar_hasta: "2027-03-31"   # la ida y la vuelta quedan dentro de este rango
-    duracion_dias: [7]     # CAMBIALO por los días que se quedan
+    viajar_hasta: "2027-02-03"   # la ida y la vuelta quedan dentro de este rango
+    duracion_dias: {min: 6, max: 8} # CAMBIALO por los días que se quedan
     paso_dias: 2           # 2 aeropuertos de salida = el doble de consultas, por eso de a 2 días
     refinar_top: 6
     tolerancia_dias: 5
