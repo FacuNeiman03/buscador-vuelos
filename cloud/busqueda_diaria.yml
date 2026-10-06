@@ -70,6 +70,13 @@ jobs:
             python -m src.core.programacion
           fi
 
+      - name: Avisar "sigo vivo" (healthchecks.io)
+        # Si GitHub pausa o desactiva el workflow, estos avisos dejan de llegar y healthchecks.io te manda un mail.
+        env:
+          HC_URL: ${{ secrets.HEALTHCHECK_URL }}
+        run: |
+          if [ -n "$HC_URL" ]; then curl -fsS -m 10 --retry 3 "$HC_URL" > /dev/null && echo "Aviso enviado"; else echo "Sin HEALTHCHECK_URL"; fi
+
       - name: Mantener vivo el cron
         if: github.event_name == 'schedule' || inputs.modo == 'programado'
         run: |
