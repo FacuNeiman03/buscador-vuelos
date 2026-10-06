@@ -14,7 +14,7 @@ general:
   abrir_reporte: siempre   # siempre | si_hay_novedad | nunca  (en la nube nunca se abre)
   una_vez_por_dia: true    # al prender la PC corre 1 sola vez por día
   velocidad: normal        # rapida | normal | prudente (se adapta sola si Google se pone estricto)
-  max_consultas_por_corrida: 1200
+  max_consultas_por_corrida: 4000   # tope por ejecución (todas las búsquedas juntas); 1200 cortaba Cipolletti y China
   hora: 0                  # desde qué hora (Argentina) puede correr cada día en la nube: 0 = en la primera pasada de GitHub del día. Cada búsqueda puede tener su propia "hora"
 
   # De dónde se sacan los precios:
