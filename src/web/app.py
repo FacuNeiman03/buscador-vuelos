@@ -25,6 +25,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 from ..core import aeropuertos
+from ..core import database as db
 from ..core import github_sync as gh
 from ..core import config_editor as editor
 from ..core import suscriptores as subs
@@ -415,21 +416,53 @@ def _limite(ip: str, cada_seg: int = 10) -> bool:
     return True
 
 
-@app.get("/suscribirse", response_class=HTMLResponse)
-def form_suscribirse(request: Request, busqueda: str | None = None):
-    cfg = cargar_config()
+DURACIONES_AVISO = [7, 15, 30, 60, 90, 180, 365]
+
+
+def _info_busquedas(cfg) -> list[dict]:
+    """Para el formulario: moneda, equipajes y el precio más barato de hoy de cada búsqueda activa."""
+    from ..notifications.mailer import _mejores_de_corrida
+    from ..reporting.metrics import filtro_rango
+    out = []
+    with db.conexion() as con:
+        for b in cfg.activas:
+            hoy = None
+            corridas = db.corridas_utiles(con, b["nombre"])
+            if corridas:
+                base = _mejores_de_corrida(con, corridas[-1]["id"], None, None, filtro_rango(b))
+                hoy = round(base[0]["precio"]) if base else None
+            out.append({"nombre": b["nombre"], "moneda": cfg.general.get("moneda", "USD"),
+                        "equipajes": b.get("equipajes") or [b.get("equipaje", "ninguno")], "hoy": hoy})
+    return out
+
+
+def _render_sus(request: Request, cfg, sel, datos, error=None, ok=None, status=200):
+    info = _info_busquedas(cfg)
     return templates.TemplateResponse(request, "suscribirse.html", {
-        "busquedas": [b["nombre"] for b in cfg.activas], "sel": busqueda, "error": None, "ok": None, "datos": {}})
+        "busquedas": [x["nombre"] for x in info], "info": info, "sel": sel, "error": error, "ok": ok,
+        "datos": datos, "duraciones": DURACIONES_AVISO}, status_code=status)
+
+
+@app.get("/suscribirse", response_class=HTMLResponse)
+def form_suscribirse(request: Request, busqueda: str | None = None, tipo: str = "mejora"):
+    return _render_sus(request, cargar_config(), busqueda, {"tipo": tipo if tipo in ("mejora", "precio") else "mejora"})
 
 
 @app.post("/suscribirse", response_class=HTMLResponse)
 def suscribirse(request: Request, email: str = Form(...), busqueda: str = Form(...),
-                desde: str = Form(""), hasta: str = Form(""), web: str = Form("")):
+                desde: str = Form(""), hasta: str = Form(""), web: str = Form(""),
+                tipo: str = Form("mejora"), precio_max: str = Form(""), duracion: str = Form("30"),
+                dias_min: str = Form(""), dias_max: str = Form(""), solo_directos: str = Form(""),
+                equipaje: str = Form(""), repetir: str = Form("bajada")):
+    from ..core.config import EQUIPAJES
+    from ..notifications.mailer import REPETIR
     cfg = cargar_config()
     nombres = [b["nombre"] for b in cfg.activas]
-    datos = {"email": email, "desde": desde, "hasta": hasta}
+    datos = {"email": email, "desde": desde, "hasta": hasta, "tipo": tipo, "precio_max": precio_max,
+             "duracion": duracion, "dias_min": dias_min, "dias_max": dias_max, "solo_directos": solo_directos,
+             "equipaje": equipaje, "repetir": repetir}
     email = email.strip().lower()
-    error = None
+    error, aviso = None, None
     if web:   # honeypot anti-bots
         error = "No se pudo procesar el formulario."
     elif not _limite(request.client.host if request.client else "?"):
@@ -438,6 +471,8 @@ def suscribirse(request: Request, email: str = Form(...), busqueda: str = Form(.
         error = "Ese email no parece válido."
     elif busqueda not in nombres:
         error = "Elegí una búsqueda de la lista."
+    elif tipo not in ("mejora", "precio"):
+        error = "Elegí cuándo querés que te avisemos."
     else:
         try:
             d = dt.date.fromisoformat(desde) if desde else None
@@ -446,26 +481,54 @@ def suscribirse(request: Request, email: str = Form(...), busqueda: str = Form(.
                 error = "La fecha 'hasta' no puede ser anterior a 'desde'."
         except ValueError:
             error = "Fechas inválidas."
+    if not error and tipo == "precio":
+        try:
+            pm = float(precio_max.replace(",", "."))
+            if pm <= 0:
+                raise ValueError
+            dmin = int(dias_min) if dias_min.strip() else None
+            dmax = int(dias_max) if dias_max.strip() else None
+            if (dmin is not None and dmin < 1) or (dmax is not None and dmax < 1):
+                raise ValueError
+            if dmin and dmax and dmax < dmin:
+                error = "Los días mínimos no pueden ser más que los máximos."
+            if repetir not in REPETIR:
+                error = "Elegí cada cuánto avisarte."
+            if equipaje and equipaje not in EQUIPAJES:
+                error = "Equipaje inválido."
+            vence = None
+            if duracion and duracion != "0":
+                n = int(duracion)
+                if n not in DURACIONES_AVISO:
+                    raise ValueError
+                vence = (dt.date.today() + dt.timedelta(days=n)).isoformat()
+            aviso = {"precio_max": round(pm, 2), "vence": vence, "dias_min": dmin, "dias_max": dmax,
+                     "solo_directos": bool(solo_directos), "equipaje": equipaje or None, "repetir": repetir}
+        except ValueError:
+            error = error or "Revisá el precio y los días: tienen que ser números positivos."
     if error:
-        return templates.TemplateResponse(request, "suscribirse.html", {
-            "busquedas": nombres, "sel": busqueda, "error": error, "ok": None, "datos": datos}, status_code=400)
+        return _render_sus(request, cfg, busqueda, datos, error=error, status=400)
 
-    token, confirmado = subs.agregar(email, busqueda, desde or None, hasta or None, confirmado=False)
+    token, confirmado = subs.agregar(email, busqueda, desde or None, hasta or None, confirmado=False,
+                                     tipo=tipo, aviso=aviso)
     rango = f" para salidas entre {desde or '…'} y {hasta or '…'}" if desde or hasta else ""
+    if tipo == "precio":
+        que = (f"cuando '{busqueda}' llegue a {cfg.general.get('moneda', 'USD')} {aviso['precio_max']:g} por persona o menos"
+               + (f" (hasta el {dt.date.fromisoformat(aviso['vence']):%d/%m/%Y})" if aviso["vence"] else ""))
+    else:
+        que = f"cuando baje el precio de '{busqueda}'"
     if confirmado:
-        ok = f"Listo: ya estabas anotado. Te vamos a avisar a {email} cuando baje el precio de '{busqueda}'{rango}."
+        ok = f"Listo: actualizamos tu aviso. Te vamos a escribir a {email} {que}{rango}."
     else:
         try:
             _mail_confirmacion(request, email, busqueda, token)
         except Exception as e:
             log.info(f"No se pudo mandar el mail de confirmación a {email}: {e}")
-            return templates.TemplateResponse(request, "suscribirse.html", {
-                "busquedas": nombres, "sel": busqueda, "datos": datos, "ok": None,
-                "error": "No pudimos mandar el mail de confirmación. Probá de nuevo en unos minutos."}, status_code=502)
-        ok = (f"Casi listo: en 1 o 2 minutos te llega un mail a {email} (mirá también en spam). Abrí el link para confirmar "
-              f"y empezar a recibir las alertas de '{busqueda}'{rango}.")
-    return templates.TemplateResponse(request, "suscribirse.html", {
-        "busquedas": nombres, "sel": busqueda, "error": None, "datos": {}, "ok": ok})
+            return _render_sus(request, cfg, busqueda, datos, status=502,
+                               error="No pudimos mandar el mail de confirmación. Probá de nuevo en unos minutos.")
+        ok = (f"Casi listo: en 1 o 2 minutos te llega un mail a {email} (mirá también en spam). Abrí el link para "
+              f"confirmar: después te avisamos {que}{rango}.")
+    return _render_sus(request, cfg, busqueda, {"tipo": tipo}, ok=ok)
 
 
 def _mail_confirmacion(request: Request, email: str, busqueda: str, token: str) -> None:

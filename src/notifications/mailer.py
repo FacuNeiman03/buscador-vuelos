@@ -33,7 +33,7 @@ from string import Template
 
 from ..core import database as db
 from ..core import suscriptores as subs
-from ..core.config import AppConfig
+from ..core.config import EQUIPAJES, AppConfig
 from ..core.paths import PLANTILLA_EMAIL
 from ..reporting.metrics import agregar_horarios, estadisticas, filtro_rango, fmt_min, mejores_por_combo
 
@@ -140,7 +140,17 @@ def componer_email(info: dict, meta: dict | None, url_reporte: str = "", url_baj
     dias = (dt.date.fromisoformat(h["vuelta"]) - dt.date.fromisoformat(h["ida"])).days if ida_vuelta else None
     esc = html.escape
 
-    if info["motivo"] == "precio":
+    if info["motivo"] == "objetivo":
+        obj = info["objetivo"]
+        etiqueta, color = "Llegó a tu precio", "#0a7d35"
+        titulo = f"{nombre}: {_money(h['precio'], cur)} por persona"
+        dif = obj - h["precio"]
+        ahorro_linea = (f"Tu aviso era a {_money(obj, cur)} o menos"
+                        + (f": está {_money(dif, cur)} por debajo" if dif >= 1 else ""))
+        if info.get("ultimo_enviado") is not None:
+            ahorro_linea += f" · ▼ {_money(info['ultimo_enviado'] - h['precio'], cur)} menos que el último aviso"
+        asunto = f"🎯 {nombre}: {_money(h['precio'], cur)} x persona — llegó a tu precio ({_money(obj, cur)})"
+    elif info["motivo"] == "precio":
         ahorro = ref["precio"] - h["precio"]
         etiqueta, color = "Bajó el precio", "#0a7d35"
         titulo = f"{nombre}: {_money(h['precio'], cur)} por persona"
@@ -166,7 +176,18 @@ def componer_email(info: dict, meta: dict | None, url_reporte: str = "", url_baj
     def fila(etq: str, val: str, color_v: str = "#0b0b0b") -> str:
         return (f'<tr><td style="padding:7px 0;border-bottom:1px solid #ecebe6;color:#52514e">{esc(etq)}</td>'
                 f'<td align="right" style="padding:7px 0;border-bottom:1px solid #ecebe6;font-weight:600;color:{color_v}">{esc(val)}</td></tr>')
-    filas.append(fila("Mínimo registrado antes de hoy", f"{_money(ref['precio'], cur)} · {_fd(ref['ida'])}"))
+    if info["motivo"] == "objetivo":
+        filas.append(fila("Tu precio objetivo", _money(info["objetivo"], cur)))
+        if ref:
+            filas.append(fila("Mínimo visto antes de hoy", f"{_money(ref['precio'], cur)} · {_fd(ref['ida'])}"))
+        if info.get("condiciones"):
+            filas.append(fila("Condiciones del aviso", info["condiciones"]))
+        if info.get("vence"):
+            filas.append(fila("Aviso activo hasta", _fd(info["vence"])))
+        if info.get("repetir") == "una_vez":
+            filas.append(fila("Este aviso era de una sola vez", "ya quedó desactivado"))
+    else:
+        filas.append(fila("Mínimo registrado antes de hoy", f"{_money(ref['precio'], cur)} · {_fd(ref['ida'])}"))
     if info["prev_best"] is not None:
         d = h["precio"] - info["prev_best"]
         txt = "igual" if abs(d) < 1 else f"{'▼' if d < 0 else '▲'} {_money(abs(d), cur)} (ayer {_money(info['prev_best'], cur)})"
@@ -219,6 +240,12 @@ def componer_email(info: dict, meta: dict | None, url_reporte: str = "", url_baj
         "link_reporte": (f'<div style="margin-top:12px"><a href="{esc(url_reporte)}" style="color:#2a78d6;font-size:14px">Ver el reporte completo</a></div>'
                          if url_reporte else ""),
         "pasajeros": pax, "total": esc(_money(h["precio"] * pax, cur)),
+        "pie": esc("Recibís este aviso porque el pasaje llegó al precio que pediste. " + {
+            "una_vez": "Era de una sola vez: no te vamos a volver a escribir por este aviso.",
+            "diario": "Te escribimos como mucho una vez por día mientras siga en ese precio o menos.",
+        }.get(info.get("repetir"), "Te volvemos a escribir solo si baja todavía más.")) if info["motivo"] == "objetivo"
+        else esc("Recibís este aviso porque bajó el precio o mejoraron las condiciones respecto de lo que ya "
+                 "habíamos visto; si no cambia nada, no te escribimos."),
         "baja": (f'<br><a href="{esc(url_baja)}" style="color:#8a8984">Dejar de recibir estas alertas</a>' if url_baja else ""),
     }
     cuerpo = Template(PLANTILLA_EMAIL.read_text(encoding="utf-8")).safe_substitute(valores)
@@ -229,7 +256,8 @@ def componer_email(info: dict, meta: dict | None, url_reporte: str = "", url_baj
         f"Fechas: {_fd(h['ida'])}" + (f" → {_fd(h['vuelta'])} ({dias} días)" if ida_vuelta else ""),
         f"Vuelo: {h.get('aerolineas')} · {valores['escalas']} · {fmt_min(h['duracion_min'])} · {h.get('ruta')}",
         f"Salida: ida {h.get('ida_hora') or '—'}" + (f" · vuelta {h.get('vta_hora') or '—'}" if ida_vuelta else ""),
-        f"Mínimo registrado antes de hoy: {_money(ref['precio'], cur)}",
+        (f"Tu precio objetivo: {_money(info['objetivo'], cur)}" if info["motivo"] == "objetivo"
+         else f"Mínimo registrado antes de hoy: {_money(ref['precio'], cur)}"),
         *([f"Se arma con {len(tramos)} pasajes separados ({TIPOS_TXT.get(h.get('tipo'), '')}):"]
           + [f"  - {'Ida' if t['sentido'] == 'ida' else 'Vuelta'} {t['origen']}→{t['destino']} {t['fecha']} "
              f"{t['aerolineas']} {_money(t['precio'] / pax_, cur)}: {t['link']}" for t in tramos]
@@ -316,6 +344,8 @@ def destinatarios(con: sqlite3.Connection, cfg: AppConfig, busqueda: str) -> lis
     for e in cfg.general["alertas"]["emails"] + meta.get("emails", []):
         vistos.setdefault(e.lower(), {"email": e, "desde": None, "hasta": None, "token": None})
     for s in subs.de_busqueda(busqueda):
+        if s.get("tipo", "mejora") != "mejora":
+            continue   # los avisos de precio objetivo van por avisos_de_precio()
         vistos[s["email"].lower()] = {"email": s["email"], "desde": s["desde"], "hasta": s["hasta"], "token": s["token"]}
     return list(vistos.values())
 
@@ -327,6 +357,11 @@ def notificar(con: sqlite3.Connection, cfg: AppConfig, corridas: dict[str, int])
         return 0
     enviados = 0
     for nombre, corrida_id in corridas.items():
+        try:
+            enviados += avisos_de_precio(con, cfg, nombre, corrida_id)
+        except EmailNoConfigurado as e:
+            log.info(f"  ✉ No se pudo avisar: {e}")
+            return enviados
         lista = destinatarios(con, cfg, nombre)
         if not lista:
             continue
@@ -357,6 +392,118 @@ def notificar(con: sqlite3.Connection, cfg: AppConfig, corridas: dict[str, int])
             except Exception as e:
                 db.registrar_notificacion(con, nombre, d["email"], corrida_id, info["hoy"], info["motivo"], False)
                 log.info(f"  ✉ Error enviando a {d['email']}: {e}")
+    return enviados
+
+
+# ----------------------------------------------------------------------------
+# Avisos de precio objetivo ("avisame cuando llegue a US$ X")
+# ----------------------------------------------------------------------------
+REPETIR = ("bajada", "diario", "una_vez")
+EQ_TXT = {"ninguno": "solo mochila", "mano": "con carry on", "despachado": "con valija despachada"}
+
+
+def descripcion_aviso(av: dict, desde: str | None = None, hasta: str | None = None) -> str:
+    partes = []
+    if desde or hasta:
+        partes.append(f"saliendo {_fd(desde) if desde else '…'} → {_fd(hasta) if hasta else '…'}")
+    if av.get("dias_min") or av.get("dias_max"):
+        a, b = av.get("dias_min"), av.get("dias_max")
+        partes.append(f"{a} días" if a and a == b else f"{a or '…'} a {b or '…'} días")
+    if av.get("solo_directos"):
+        partes.append("solo directos")
+    if av.get("equipaje") in EQ_TXT:
+        partes.append(EQ_TXT[av["equipaje"]])
+    return " · ".join(partes)
+
+
+def mejor_para_aviso(con: sqlite3.Connection, corrida_id: int, meta: dict | None, av: dict,
+                     desde: str | None, hasta: str | None) -> dict | None:
+    """La opción más barata de la corrida que cumple las condiciones del aviso (precio por persona)."""
+    m = dict(meta or {})
+    if av.get("equipaje") in EQUIPAJES:
+        m["nivel_equipaje"] = EQUIPAJES[av["equipaje"]]
+    filtro = filtro_rango(m) if meta else None
+    con_duracion = bool(av.get("dias_min") or av.get("dias_max"))
+    filas = []
+    for f in db.filas_corrida(con, corrida_id):
+        if filtro and not filtro(f):
+            continue
+        f = dict(f)
+        f["flexible"] = f.get("flexible") or 0
+        if f["flexible"] and not con_duracion:
+            continue   # sin duración propia, solo cuentan los viajes de la duración de la búsqueda
+        if not _en_ventana(f, desde, hasta):
+            continue
+        if con_duracion and f.get("vuelta"):
+            dias = (dt.date.fromisoformat(f["vuelta"]) - dt.date.fromisoformat(f["ida"])).days
+            if (av.get("dias_min") and dias < av["dias_min"]) or (av.get("dias_max") and dias > av["dias_max"]):
+                continue
+        if av.get("solo_directos") and (f.get("escalas") or 0) > 0:
+            continue
+        f["precio"] = f["precio"] / (f["pasajeros"] or 1)
+        f["total"] = f["precio"] * (f["pasajeros"] or 1)
+        filas.append(f)
+    if not filas:
+        return None
+    agregar_horarios(con, corrida_id, filas)
+    base, flex = mejores_por_combo(filas)
+    todas = sorted(base + flex, key=lambda c: (c["precio"], c["escalas"], c["duracion_min"]))
+    return todas[0] if todas else None
+
+
+def evaluar_aviso(con: sqlite3.Connection, s: dict, mejor: dict | None, hoy: str) -> tuple[bool, float | None]:
+    """(¿mandar?, precio del último aviso enviado). Reglas según aviso.repetir:
+    bajada  = al llegar al precio y de nuevo cada vez que baje más que el último aviso (por defecto)
+    diario  = una vez por día mientras siga en ese precio o menos
+    una_vez = un solo mail y el aviso se desactiva"""
+    av = s.get("aviso") or {}
+    if mejor is None or mejor["precio"] > float(av.get("precio_max") or 0) + TOLERANCIA_PRECIO:
+        return False, None
+    previos = db.avisos_enviados(con, s["token"])
+    ultimo = previos[0]["precio"] if previos else None
+    rep = av.get("repetir", "bajada")
+    if rep == "una_vez":
+        return not previos, ultimo
+    if rep == "diario":
+        return not (previos and previos[0]["enviado"][:10] == hoy), ultimo
+    return (not previos or mejor["precio"] < min(p["precio"] for p in previos) - TOLERANCIA_PRECIO), ultimo
+
+
+def avisos_de_precio(con: sqlite3.Connection, cfg: AppConfig, nombre: str, corrida_id: int) -> int:
+    meta = cfg.buscar(nombre)
+    hoy = dt.date.today()
+    enviados = 0
+    for s in subs.de_busqueda(nombre):
+        if s.get("tipo") != "precio" or not subs.vigente(s, hoy):
+            continue
+        av = s.get("aviso") or {}
+        mejor = mejor_para_aviso(con, corrida_id, meta, av, s.get("desde"), s.get("hasta"))
+        mandar, ultimo = evaluar_aviso(con, s, mejor, hoy.isoformat())
+        if not mandar:
+            continue
+        ref = db.minimo_historico(con, nombre, antes_de_corrida=corrida_id, filtro=filtro_rango(meta))
+        info = {"busqueda": nombre, "corrida_id": corrida_id, "motivo": "objetivo", "hoy": mejor,
+                "ref": dict(ref) if ref else None, "prev_best": None, "objetivo": float(av["precio_max"]),
+                "ultimo_enviado": ultimo, "vence": av.get("vence"), "repetir": av.get("repetir", "bajada"),
+                "condiciones": descripcion_aviso(av, s.get("desde"), s.get("hasta")),
+                "stats": {"promedio": None}, "desde": None, "hasta": None}
+        base = _url_publica()
+        url_baja = f"{base}/baja?token={s['token']}" if base else ""
+        url_rep = cfg.general.get("url_reporte") or (base + "/" if base else "")
+        asunto, cuerpo, texto = componer_email(info, meta, url_rep, url_baja)
+        try:
+            enviar_email(s["email"], asunto, cuerpo, texto, cfg.general["alertas"]["remitente"])
+        except EmailNoConfigurado:
+            raise
+        except Exception as e:
+            db.registrar_notificacion(con, nombre, s["email"], corrida_id, mejor, "objetivo", False, s["token"])
+            log.info(f"  ✉ Error enviando aviso a {s['email']}: {e}")
+            continue
+        db.registrar_notificacion(con, nombre, s["email"], corrida_id, mejor, "objetivo", True, s["token"])
+        enviados += 1
+        log.info(f"  🎯 Aviso de precio enviado a {s['email']}: {asunto}")
+        if av.get("repetir") == "una_vez":
+            subs.desactivar(s["token"])
     return enviados
 
 

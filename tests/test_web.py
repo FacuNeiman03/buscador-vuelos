@@ -31,12 +31,12 @@ def test_suscripcion_y_baja(monkeypatch):
         w._ultimos_envios.clear()
         r = c.post("/suscribirse", data={"email": "a@b.com", "busqueda": "Verano", "desde": "2027-01-01", "hasta": "2027-01-31"})
         assert r.status_code == 200 and "te llega un mail" in r.text
-        assert not subs.de_busqueda("Verano")          # pendiente hasta confirmar
+        assert not [x for x in subs.de_busqueda("Verano") if x["email"] == "a@b.com"]   # pendiente hasta confirmar
         assert mails and mails[0][0] == "a@b.com"
         import re
         token = re.search(r"token=([^\"&]+)", mails[0][1]).group(1)
         assert "confirmado" in c.get(f"/confirmar?token={token}").text
-        s = subs.de_busqueda("Verano")
+        s = [x for x in subs.de_busqueda("Verano") if x["email"] == "a@b.com"]
         assert s and s[0]["desde"] == "2027-01-01"
         assert "no vas a recibir" in c.get(f"/baja?token={s[0]['token']}").text
 

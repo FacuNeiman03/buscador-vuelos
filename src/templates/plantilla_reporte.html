@@ -1105,6 +1105,7 @@ function cabecera(b){
     <div class="sh-actions">
       <button class="btn btn-primary" id="btnAct" onclick="actualizar()" ${b.activa?"":"disabled title='Reanudala para buscar'"}><span class="ic">${ico("refresh")}</span><span class="spin" aria-hidden="true"></span><span class="txt">Actualizar datos de este vuelo</span></button>
       <span class="inline">
+        <a class="btn" href="suscribirse?busqueda=${encodeURIComponent(b.nombre)}&tipo=precio" title="Recibir un mail cuando llegue a un precio">${ico("mail")}Aviso de precio</a>
         <button class="btn" onclick="abrirForm(DATOS.busquedas[actual])">${ico("edit")}Editar</button>
         <button class="btn" onclick="pausar(${b.activa?"false":"true"})">${ico(b.activa?"pause":"play")}${b.activa?"Pausar":"Reanudar"}</button>
         <button class="btn btn-danger" onclick="borrar()">${ico("trash")}Borrar</button>
@@ -1112,6 +1113,7 @@ function cabecera(b){
       <div class="menu-wrap more">
         <button class="btn btn-icon" id="btnMas" aria-haspopup="menu" aria-expanded="false" aria-controls="menuMas" aria-label="Más acciones">${ico("more")}</button>
         <div class="menu" id="menuMas" role="menu" hidden>
+          <button role="menuitem" onclick="cerrarMenu();location.href='suscribirse?busqueda='+encodeURIComponent(DATOS.busquedas[actual].nombre)+'&tipo=precio'">${ico("mail")}Aviso de precio</button>
           <button role="menuitem" onclick="cerrarMenu();abrirForm(DATOS.busquedas[actual])">${ico("edit")}Editar</button>
           <button role="menuitem" onclick="cerrarMenu();pausar(${b.activa?"false":"true"})">${ico(b.activa?"pause":"play")}${b.activa?"Pausar":"Reanudar"}</button>
           <button role="menuitem" class="danger" onclick="cerrarMenu();borrar()">${ico("trash")}Borrar</button>

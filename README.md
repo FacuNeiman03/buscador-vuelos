@@ -314,6 +314,18 @@ El plan gratis "duerme" a los 15 min sin visitas y tarda ~1 min en despertar. Al
 
 Cualquiera con el link `/suscribirse` puede pedir alertas de una búsqueda. Recibe un mail y recién queda anotado cuando abre el link de confirmación. Ese mail lo manda GitHub Actions (workflow `confirmacion.yml`), porque Render gratis bloquea SMTP. `/baja` lo da de baja. Los emails se guardan cifrados en `data/suscriptores.json`.
 
+
+**Avisos de precio objetivo.** En la misma página (o con el botón **Aviso de precio** de cada búsqueda) se puede elegir "Cuando llegue a un precio que yo elijo":
+
+| Opción | Qué hace |
+|---|---|
+| Precio | Avisa cuando la opción más barata cuesta eso o menos **por persona** |
+| Durante | 7 a 365 días o sin vencimiento; después el aviso deja de valer solo |
+| Cada cuánto | *Al llegar y si baja más* (por defecto) · *Todos los días mientras siga* · *Una sola vez* (y se desactiva) |
+| Días de viaje | Mínimo/máximo de días (incluye las variantes de otra duración); vacío = la duración de la búsqueda |
+| Equipaje / Solo directos / Salir desde-hasta | Filtros extra para el aviso |
+
+Los avisos de precio no reciben las alertas de "nuevo mínimo" (son dos suscripciones distintas; se puede tener una de cada una).
 ---
 
 ## 8. Interfaz web

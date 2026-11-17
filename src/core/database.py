@@ -17,7 +17,7 @@ from typing import Iterator
 from .paths import DB_PATH
 
 COMPLETA, PARCIAL = 1, 2
-ESQUEMA_VERSION = 5
+ESQUEMA_VERSION = 6
 
 
 def _ahora() -> str:
@@ -77,6 +77,10 @@ def _migrar(con: sqlite3.Connection) -> None:
             escalas INT, duracion_min INT, precio REAL, orden INT);
         CREATE INDEX IF NOT EXISTS ix_vueltas ON vueltas(corrida_id);
         """)
+    if version < 6:
+        # Avisos de precio objetivo: cada mail queda asociado al aviso (token de la suscripción)
+        if "aviso" not in _columnas(con, "notificaciones"):
+            con.execute("ALTER TABLE notificaciones ADD COLUMN aviso TEXT")
     con.execute(f"PRAGMA user_version = {ESQUEMA_VERSION}")
     con.commit()
 
@@ -339,13 +343,19 @@ def renombrar_busqueda(con: sqlite3.Connection, viejo: str, nuevo: str) -> None:
 # Registro de notificaciones (evita repetir avisos)
 # ----------------------------------------------------------------------------
 def registrar_notificacion(con: sqlite3.Connection, busqueda: str, email: str, corrida_id: int,
-                           opcion: dict, motivo: str, ok: bool) -> None:
+                           opcion: dict, motivo: str, ok: bool, aviso: str | None = None) -> None:
     con.execute(
         "INSERT INTO notificaciones(enviado, busqueda, email, corrida_id, precio, escalas, duracion_min, ida, "
-        "vuelta, motivo, ok) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+        "vuelta, motivo, ok, aviso) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
         (_ahora(), busqueda, email, corrida_id, opcion["precio"], opcion["escalas"], opcion["duracion_min"],
-         opcion["ida"], opcion["vuelta"], motivo, 1 if ok else 0))
+         opcion["ida"], opcion["vuelta"], motivo, 1 if ok else 0, aviso))
     con.commit()
+
+
+def avisos_enviados(con: sqlite3.Connection, aviso: str) -> list[dict]:
+    """Mails ya enviados de un aviso de precio (más nuevo primero)."""
+    return [dict(r) for r in con.execute(
+        "SELECT * FROM notificaciones WHERE aviso=? AND ok=1 ORDER BY id DESC", (aviso,))]
 
 
 def ya_notificado(con: sqlite3.Connection, busqueda: str, email: str, corrida_id: int) -> bool:

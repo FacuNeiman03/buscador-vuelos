@@ -76,7 +76,7 @@ def _guardar(lista: list[dict]) -> None:
 
 
 def agregar(email: str, busqueda: str, desde: str | None, hasta: str | None,
-            confirmado: bool = True) -> tuple[str, bool]:
+            confirmado: bool = True, tipo: str = "mejora", aviso: dict | None = None) -> tuple[str, bool]:
     """Alta o actualización. Devuelve (token, ya_confirmado).
 
     Con confirmado=False (la web pública) la suscripción queda pendiente hasta que la persona abre el
@@ -85,8 +85,10 @@ def agregar(email: str, busqueda: str, desde: str | None, hasta: str | None,
     with _lock:
         lista = cargar()
         for s in lista:
-            if s["email"] == email and s["busqueda"] == busqueda:
+            if s["email"] == email and s["busqueda"] == busqueda and s.get("tipo", "mejora") == tipo:
                 s.update(desde=desde or None, hasta=hasta or None)
+                if aviso is not None:
+                    s["aviso"] = aviso
                 if s.get("confirmado", True) and s.get("activo", True):
                     _guardar(lista)
                     return s["token"], True
@@ -94,9 +96,12 @@ def agregar(email: str, busqueda: str, desde: str | None, hasta: str | None,
                 _guardar(lista)
                 return s["token"], confirmado
         token = secrets.token_urlsafe(24)
-        lista.append({"email": email, "busqueda": busqueda, "desde": desde or None, "hasta": hasta or None,
-                      "token": token, "activo": confirmado, "confirmado": confirmado,
-                      "creado": dt.datetime.now().strftime("%Y-%m-%d %H:%M")})
+        nuevo = {"email": email, "busqueda": busqueda, "desde": desde or None, "hasta": hasta or None,
+                 "token": token, "activo": confirmado, "confirmado": confirmado, "tipo": tipo,
+                 "creado": dt.datetime.now().strftime("%Y-%m-%d %H:%M")}
+        if aviso is not None:
+            nuevo["aviso"] = aviso
+        lista.append(nuevo)
         _guardar(lista)
         return token, confirmado
 
@@ -127,6 +132,23 @@ def dar_de_baja(token: str) -> bool:
 def de_busqueda(busqueda: str) -> list[dict]:
     return [s for s in cargar() if s.get("busqueda") == busqueda and s.get("activo", True)
             and s.get("confirmado", True)]
+
+
+def vigente(s: dict, hoy: dt.date | None = None) -> bool:
+    """Un aviso de precio deja de valer después de su fecha de vencimiento (aviso.vence)."""
+    vence = (s.get("aviso") or {}).get("vence")
+    return not vence or (hoy or dt.date.today()).isoformat() <= vence
+
+
+def desactivar(token: str) -> None:
+    """Para avisos de 'una sola vez': después del primer mail queda inactivo."""
+    with _lock:
+        lista = cargar()
+        for s in lista:
+            if s.get("token") == token and s.get("activo", True):
+                s["activo"] = False
+                _guardar(lista)
+                return
 
 
 def renombrar_busqueda(viejo: str, nuevo: str) -> None:
