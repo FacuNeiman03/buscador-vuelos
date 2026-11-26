@@ -2,7 +2,7 @@ name: Prueba navegador
 on:
   push:
     branches: [prueba-navegador]
-    paths: [prueba.yaml, .github/workflows/probe.yml, src/**]
+    paths: [diag.py, .github/workflows/probe.yml]
 permissions: {contents: write}
 jobs:
   probe:
@@ -14,7 +14,9 @@ jobs:
       - uses: actions/setup-python@v5
         with: {python-version: '3.12'}
       - run: pip install -r requirements.txt playwright==1.49.1
-      - run: rm -rf salida; mkdir -p salida; python -m src.main --config prueba.yaml --forzar --sin-email --no-abrir 2>&1 | tee salida/salida.txt; cp /tmp/v/data/historial.db salida/ || true
+      - run: python diag.py
+      - if: false
+        run: rm -rf salida; mkdir -p salida; python -m src.main --config prueba.yaml --forzar --sin-email --no-abrir 2>&1 | tee salida/salida.txt; cp /tmp/v/data/historial.db salida/ || true
       - if: always()
         run: |
           git config user.name bot; git config user.email bot@x
