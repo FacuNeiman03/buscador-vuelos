@@ -1,281 +1,256 @@
-2026-11-26 15:11:39  == Cipolletti ==  [proveedor: fast_flights · estrategia: ambas]
-2026-11-26 15:11:39    Filtros: salidas 2027-01-14 a 2027-01-28 · vuelta hasta 2027-01-28
-2026-11-26 15:11:39    -- Equipaje: ninguno --
-2026-11-26 15:11:39    1ra pasada: 13 combinaciones de fechas (~26 consultas)
-2026-11-26 15:11:40    ✓ AEP-NQN 2027-01-14 / 2027-01-20 (6 días): USD 104 x persona  (JetSMART)
-2026-11-26 15:11:41    · EZE-NQN 2027-01-14 / 2027-01-20 (6 días): sin vuelos
-2026-11-26 15:11:42    ✓ AEP-NQN 2027-01-14 / 2027-01-21 (7 días): USD 92 x persona  (JetSMART)
-2026-11-26 15:11:42    · EZE-NQN 2027-01-14 / 2027-01-21 (7 días): sin vuelos
-2026-11-26 15:11:43    ✓ AEP-NQN 2027-01-14 / 2027-01-22 (8 días): USD 92 x persona  (JetSMART)
-2026-11-26 15:11:44    ✓ EZE-NQN 2027-01-14 / 2027-01-22 (8 días): USD 134 x persona  (JetSMART)
-2026-11-26 15:11:45    · AEP-NQN 2027-01-16 / 2027-01-22 (6 días): sin vuelos
-2026-11-26 15:11:46    ✓ EZE-NQN 2027-01-16 / 2027-01-22 (6 días): USD 208 x persona  (JetSMART)
-2026-11-26 15:11:47    ✓ AEP-NQN 2027-01-16 / 2027-01-23 (7 días): USD 152 x persona  (JetSMART)
-2026-11-26 15:11:47    ✓ EZE-NQN 2027-01-16 / 2027-01-23 (7 días): USD 132 x persona  (JetSMART)
-2026-11-26 15:11:48    · AEP-NQN 2027-01-16 / 2027-01-24 (8 días): sin vuelos
-2026-11-26 15:11:49    ✓ EZE-NQN 2027-01-16 / 2027-01-24 (8 días): USD 132 x persona  (JetSMART)
-2026-11-26 15:11:49    · AEP-NQN 2027-01-18 / 2027-01-24 (6 días): sin vuelos
-2026-11-26 15:11:50    · EZE-NQN 2027-01-18 / 2027-01-24 (6 días): sin vuelos
-2026-11-26 15:11:51    · AEP-NQN 2027-01-18 / 2027-01-25 (7 días): sin vuelos
-2026-11-26 15:11:52    ✓ EZE-NQN 2027-01-18 / 2027-01-25 (7 días): USD 58 x persona  (JetSMART)
-2026-11-26 15:11:52    ✓ AEP-NQN 2027-01-18 / 2027-01-26 (8 días): USD 64 x persona  (JetSMART)
-2026-11-26 15:11:53    · EZE-NQN 2027-01-18 / 2027-01-26 (8 días): sin vuelos
-2026-11-26 15:11:54    ✓ AEP-NQN 2027-01-20 / 2027-01-26 (6 días): USD 110 x persona  (JetSMART)
-2026-11-26 15:11:55    ✓ EZE-NQN 2027-01-20 / 2027-01-26 (6 días): USD 58 x persona  (JetSMART)
-2026-11-26 15:11:56    ✓ AEP-NQN 2027-01-20 / 2027-01-27 (7 días): USD 116 x persona  (JetSMART)
-2026-11-26 15:11:56    ✓ EZE-NQN 2027-01-20 / 2027-01-27 (7 días): USD 58 x persona  (JetSMART)
-2026-11-26 15:11:57    · AEP-NQN 2027-01-20 / 2027-01-28 (8 días): sin vuelos
-2026-11-26 15:11:58    ✓ EZE-NQN 2027-01-20 / 2027-01-28 (8 días): USD 58 x persona  (JetSMART)
-2026-11-26 15:11:59    · AEP-NQN 2027-01-22 / 2027-01-28 (6 días): sin vuelos
-2026-11-26 15:12:00    ✓ EZE-NQN 2027-01-22 / 2027-01-28 (6 días): USD 58 x persona  (JetSMART)
-2026-11-26 15:12:00    2da pasada: 8 salidas día por día alrededor de las más baratas
-2026-11-26 15:12:01    · AEP-NQN 2027-01-17 / 2027-01-23 (6 días): sin vuelos
-2026-11-26 15:12:02    · EZE-NQN 2027-01-17 / 2027-01-23 (6 días): sin vuelos
-2026-11-26 15:12:03    ✓ AEP-NQN 2027-01-17 / 2027-01-24 (7 días): USD 168 x persona  (JetSMART)
-2026-11-26 15:12:03    · EZE-NQN 2027-01-17 / 2027-01-24 (7 días): sin vuelos
-2026-11-26 15:12:04    ✓ AEP-NQN 2027-01-17 / 2027-01-25 (8 días): USD 162 x persona  (JetSMART)
-2026-11-26 15:12:05    ✓ EZE-NQN 2027-01-17 / 2027-01-25 (8 días): USD 58 x persona  (JetSMART)
-2026-11-26 15:12:06    ✓ AEP-NQN 2027-01-19 / 2027-01-25 (6 días): USD 64 x persona  (JetSMART)
-2026-11-26 15:12:06    ✓ EZE-NQN 2027-01-19 / 2027-01-25 (6 días): USD 222 x persona  (Aerolíneas Argentinas)
-2026-11-26 15:12:07    ✓ AEP-NQN 2027-01-19 / 2027-01-26 (7 días): USD 64 x persona  (JetSMART)
-2026-11-26 15:12:08    · EZE-NQN 2027-01-19 / 2027-01-26 (7 días): sin vuelos
-2026-11-26 15:12:09    ✓ AEP-NQN 2027-01-19 / 2027-01-27 (8 días): USD 70 x persona  (JetSMART)
-2026-11-26 15:12:10    ✓ EZE-NQN 2027-01-19 / 2027-01-27 (8 días): USD 222 x persona  (Aerolíneas Argentinas)
-2026-11-26 15:12:10    ✓ AEP-NQN 2027-01-21 / 2027-01-27 (6 días): USD 104 x persona  (JetSMART)
-2026-11-26 15:12:11    ✓ EZE-NQN 2027-01-21 / 2027-01-27 (6 días): USD 70 x persona  (JetSMART)
-2026-11-26 15:12:12    ✓ AEP-NQN 2027-01-21 / 2027-01-28 (7 días): USD 92 x persona  (JetSMART)
-2026-11-26 15:12:13    ✓ EZE-NQN 2027-01-21 / 2027-01-28 (7 días): USD 70 x persona  (JetSMART)
-2026-11-26 15:12:13    3ra pasada: 3 combinaciones con días de diferencia (±1)
-2026-11-26 15:12:13    · AEP-NQN 2027-01-19 / 2027-01-24 (5 días): sin vuelos
-2026-11-26 15:12:14    · EZE-NQN 2027-01-19 / 2027-01-24 (5 días): sin vuelos
-2026-11-26 15:12:15    · AEP-NQN 2027-01-20 / 2027-01-25 (5 días): sin vuelos
-2026-11-26 15:12:16    ✓ EZE-NQN 2027-01-20 / 2027-01-25 (5 días): USD 58 x persona  (JetSMART)
-2026-11-26 15:12:17    ✓ AEP-NQN 2027-01-21 / 2027-01-26 (5 días): USD 98 x persona  (JetSMART)
-2026-11-26 15:12:17    · EZE-NQN 2027-01-21 / 2027-01-26 (5 días): sin vuelos
-2026-11-26 15:12:17    Pasajes de solo ida: 10 días de ida + 10 de vuelta (~40 consultas; cubre todas las duraciones de 5 a 9 días)
-2026-11-26 15:12:18    · AEP-NQN 2027-01-14 solo ida: sin vuelos
-2026-11-26 15:12:19    ✓ AEP-NQN 2027-01-15 solo ida: USD 26 x persona  (JetSMART)
-2026-11-26 15:12:20    · AEP-NQN 2027-01-16 solo ida: sin vuelos
-2026-11-26 15:12:21    ✓ AEP-NQN 2027-01-17 solo ida: USD 140 x persona  (JetSMART)
-2026-11-26 15:12:21    ✓ AEP-NQN 2027-01-18 solo ida: USD 26 x persona  (JetSMART)
-2026-11-26 15:12:22    · AEP-NQN 2027-01-19 solo ida: sin vuelos
-2026-11-26 15:12:23    ✓ AEP-NQN 2027-01-20 solo ida: USD 73 x persona  (JetSMART)
-2026-11-26 15:12:23    · AEP-NQN 2027-01-21 solo ida: sin vuelos
-2026-11-26 15:12:24    · AEP-NQN 2027-01-22 solo ida: sin vuelos
-2026-11-26 15:12:25    ✓ AEP-NQN 2027-01-23 solo ida: USD 125 x persona  (JetSMART)
-2026-11-26 15:12:26    ✓ NQN-AEP 2027-01-19 solo ida: USD 71 x persona  (JetSMART)
-2026-11-26 15:12:27    · NQN-AEP 2027-01-20 solo ida: sin vuelos
-2026-11-26 15:12:28    · NQN-AEP 2027-01-21 solo ida: sin vuelos
-2026-11-26 15:12:28    ✓ NQN-AEP 2027-01-22 solo ida: USD 32 x persona  (JetSMART)
-2026-11-26 15:12:29    · NQN-AEP 2027-01-23 solo ida: sin vuelos
-2026-11-26 15:12:30    ✓ NQN-AEP 2027-01-24 solo ida: USD 43 x persona  (JetSMART)
-2026-11-26 15:12:30    · NQN-AEP 2027-01-25 solo ida: sin vuelos
-2026-11-26 15:12:31    · NQN-AEP 2027-01-26 solo ida: sin vuelos
-2026-11-26 15:12:32    ✓ NQN-AEP 2027-01-27 solo ida: USD 43 x persona  (JetSMART)
-2026-11-26 15:12:33    ✓ NQN-AEP 2027-01-28 solo ida: USD 32 x persona  (JetSMART)
-2026-11-26 15:12:33    · EZE-NQN 2027-01-14 solo ida: sin vuelos
-2026-11-26 15:12:34    ✓ EZE-NQN 2027-01-15 solo ida: USD 73 x persona  (JetSMART)
-2026-11-26 15:12:35    · EZE-NQN 2027-01-16 solo ida: sin vuelos
-2026-11-26 15:12:36    · EZE-NQN 2027-01-17 solo ida: sin vuelos
-2026-11-26 15:12:37    ✓ EZE-NQN 2027-01-18 solo ida: USD 26 x persona  (JetSMART)
-2026-11-26 15:12:38    ✓ EZE-NQN 2027-01-19 solo ida: USD 191 x persona  (Aerolíneas Argentinas)
-2026-11-26 15:12:39    ✓ EZE-NQN 2027-01-20 solo ida: USD 26 x persona  (JetSMART)
-2026-11-26 15:12:40    · EZE-NQN 2027-01-21 solo ida: sin vuelos
-2026-11-26 15:12:41    ✓ EZE-NQN 2027-01-22 solo ida: USD 32 x persona  (JetSMART)
-2026-11-26 15:12:41    ✓ EZE-NQN 2027-01-23 solo ida: USD 100 x persona  (JetSMART)
-2026-11-26 15:12:42    ✓ NQN-EZE 2027-01-19 solo ida: USD 32 x persona  (JetSMART)
-2026-11-26 15:12:43    · NQN-EZE 2027-01-20 solo ida: sin vuelos
-2026-11-26 15:12:44    ✓ NQN-EZE 2027-01-21 solo ida: USD 32 x persona  (JetSMART)
-2026-11-26 15:12:45    · NQN-EZE 2027-01-22 solo ida: sin vuelos
-2026-11-26 15:12:46    ✓ NQN-EZE 2027-01-23 solo ida: USD 37 x persona  (JetSMART)
-2026-11-26 15:12:46    ✓ NQN-EZE 2027-01-24 solo ida: USD 32 x persona  (JetSMART)
-2026-11-26 15:12:47    ✓ NQN-EZE 2027-01-25 solo ida: USD 32 x persona  (JetSMART)
-2026-11-26 15:12:48    · NQN-EZE 2027-01-26 solo ida: sin vuelos
-2026-11-26 15:12:49    · NQN-EZE 2027-01-27 solo ida: sin vuelos
-2026-11-26 15:12:50    · NQN-EZE 2027-01-28 solo ida: sin vuelos
-2026-11-26 15:12:50    ► Mejor con 2 pasajes: USD 58 x persona — 2027-01-15 a 2027-01-21 (JetSMART)
-2026-11-26 15:12:50    Horarios de vuelta: 16 consultas de solo ida para las mejores opciones
-2026-11-26 15:12:51    · NQN-EZE 2027-01-25 solo ida: sin vuelos
-2026-11-26 15:12:52    · NQN-EZE 2027-01-26 solo ida: sin vuelos
-2026-11-26 15:12:52    · NQN-EZE 2027-01-27 solo ida: sin vuelos
-2026-11-26 15:12:53    ✓ NQN-EZE 2027-01-28 solo ida: USD 32 x persona  (JetSMART)
-2026-11-26 15:12:54    · NQN-AEP 2027-01-26 solo ida: sin vuelos
-2026-11-26 15:12:55    · NQN-AEP 2027-01-25 solo ida: sin vuelos
-2026-11-26 15:12:55    · NQN-AEP 2027-01-27 solo ida: sin vuelos
-2026-11-26 15:12:56    ✓ NQN-AEP 2027-01-21 solo ida: USD 32 x persona  (JetSMART)
-2026-11-26 15:12:57    · NQN-AEP 2027-01-22 solo ida: sin vuelos
-2026-11-26 15:12:58    ✓ NQN-AEP 2027-01-28 solo ida: USD 32 x persona  (JetSMART)
-2026-11-26 15:12:59    ✓ NQN-AEP 2027-01-20 solo ida: USD 43 x persona  (JetSMART)
-2026-11-26 15:12:59    ✓ NQN-EZE 2027-01-23 solo ida: USD 37 x persona  (JetSMART)
-2026-11-26 15:13:00    ✓ NQN-EZE 2027-01-24 solo ida: USD 32 x persona  (JetSMART)
-2026-11-26 15:13:01    ✓ NQN-EZE 2027-01-22 solo ida: USD 108 x persona  (Aerolíneas Argentinas)
-2026-11-26 15:13:02    · NQN-AEP 2027-01-23 solo ida: sin vuelos
-2026-11-26 15:13:02    · NQN-AEP 2027-01-24 solo ida: sin vuelos
-2026-11-26 15:13:02    -- Equipaje: mano --
-2026-11-26 15:13:02    1ra pasada: 13 combinaciones de fechas (~26 consultas)
-2026-11-26 15:13:03    ✓ AEP-NQN 2027-01-14 / 2027-01-20 (6 días): USD 146 x persona  (JetSMART)
-2026-11-26 15:13:04    ✓ EZE-NQN 2027-01-14 / 2027-01-20 (6 días): USD 175 x persona  (JetSMART)
-2026-11-26 15:13:05    · AEP-NQN 2027-01-14 / 2027-01-21 (7 días): sin vuelos
-2026-11-26 15:13:05    ✓ EZE-NQN 2027-01-14 / 2027-01-21 (7 días): USD 222 x persona  (JetSMART)
-2026-11-26 15:13:06    · AEP-NQN 2027-01-14 / 2027-01-22 (8 días): sin vuelos
-2026-11-26 15:13:07    · EZE-NQN 2027-01-14 / 2027-01-22 (8 días): sin vuelos
-2026-11-26 15:13:08    ✓ AEP-NQN 2027-01-16 / 2027-01-22 (6 días): USD 216 x persona  (JetSMART)
-2026-11-26 15:13:08    · EZE-NQN 2027-01-16 / 2027-01-22 (6 días): sin vuelos
-2026-11-26 15:13:09    ✓ AEP-NQN 2027-01-16 / 2027-01-23 (7 días): USD 244 x persona  (Aerolíneas Argentinas)
-2026-11-26 15:13:10    · EZE-NQN 2027-01-16 / 2027-01-23 (7 días): sin vuelos
-2026-11-26 15:13:11    · AEP-NQN 2027-01-16 / 2027-01-24 (8 días): sin vuelos
-2026-11-26 15:13:12    ✓ EZE-NQN 2027-01-16 / 2027-01-24 (8 días): USD 176 x persona  (JetSMART)
-2026-11-26 15:13:13    · AEP-NQN 2027-01-18 / 2027-01-24 (6 días): sin vuelos
-2026-11-26 15:13:14    · EZE-NQN 2027-01-18 / 2027-01-24 (6 días): sin vuelos
-2026-11-26 15:13:15    · AEP-NQN 2027-01-18 / 2027-01-25 (7 días): sin vuelos
-2026-11-26 15:13:15    · EZE-NQN 2027-01-18 / 2027-01-25 (7 días): sin vuelos
-2026-11-26 15:13:16    ✓ AEP-NQN 2027-01-18 / 2027-01-26 (8 días): USD 201 x persona  (JetSMART)
-2026-11-26 15:13:17    ✓ EZE-NQN 2027-01-18 / 2027-01-26 (8 días): USD 100 x persona  (JetSMART)
-2026-11-26 15:13:18    · AEP-NQN 2027-01-20 / 2027-01-26 (6 días): sin vuelos
-2026-11-26 15:13:18    ✓ EZE-NQN 2027-01-20 / 2027-01-26 (6 días): USD 106 x persona  (JetSMART)
-2026-11-26 15:13:19    · AEP-NQN 2027-01-20 / 2027-01-27 (7 días): sin vuelos
-2026-11-26 15:13:20    · EZE-NQN 2027-01-20 / 2027-01-27 (7 días): sin vuelos
-2026-11-26 15:13:20    · AEP-NQN 2027-01-20 / 2027-01-28 (8 días): sin vuelos
-2026-11-26 15:13:21    · EZE-NQN 2027-01-20 / 2027-01-28 (8 días): sin vuelos
-2026-11-26 15:13:22    ✓ AEP-NQN 2027-01-22 / 2027-01-28 (6 días): USD 170 x persona  (JetSMART)
-2026-11-26 15:13:23    · EZE-NQN 2027-01-22 / 2027-01-28 (6 días): sin vuelos
-2026-11-26 15:13:23    2da pasada: 8 salidas día por día alrededor de las más baratas
-2026-11-26 15:13:24    ✓ AEP-NQN 2027-01-17 / 2027-01-23 (6 días): USD 282 x persona  (Aerolíneas Argentinas)
-2026-11-26 15:13:24    · EZE-NQN 2027-01-17 / 2027-01-23 (6 días): sin vuelos
-2026-11-26 15:13:25    · AEP-NQN 2027-01-17 / 2027-01-24 (7 días): sin vuelos
-2026-11-26 15:13:26    · EZE-NQN 2027-01-17 / 2027-01-24 (7 días): sin vuelos
-2026-11-26 15:13:27    ✓ AEP-NQN 2027-01-17 / 2027-01-25 (8 días): USD 207 x persona  (JetSMART)
-2026-11-26 15:13:28    · EZE-NQN 2027-01-17 / 2027-01-25 (8 días): sin vuelos
-2026-11-26 15:13:29    ✓ AEP-NQN 2027-01-19 / 2027-01-25 (6 días): USD 140 x persona  (JetSMART)
-2026-11-26 15:13:29    · EZE-NQN 2027-01-19 / 2027-01-25 (6 días): sin vuelos
-2026-11-26 15:13:30    · AEP-NQN 2027-01-19 / 2027-01-26 (7 días): sin vuelos
-2026-11-26 15:13:31    · EZE-NQN 2027-01-19 / 2027-01-26 (7 días): sin vuelos
-2026-11-26 15:13:31    ✓ AEP-NQN 2027-01-19 / 2027-01-27 (8 días): USD 146 x persona  (JetSMART)
-2026-11-26 15:13:32    ✓ EZE-NQN 2027-01-19 / 2027-01-27 (8 días): USD 282 x persona  (Aerolíneas Argentinas)
-2026-11-26 15:13:33    · AEP-NQN 2027-01-21 / 2027-01-27 (6 días): sin vuelos
-2026-11-26 15:13:34    · EZE-NQN 2027-01-21 / 2027-01-27 (6 días): sin vuelos
-2026-11-26 15:13:35    · AEP-NQN 2027-01-21 / 2027-01-28 (7 días): sin vuelos
-2026-11-26 15:13:35    ✓ EZE-NQN 2027-01-21 / 2027-01-28 (7 días): USD 111 x persona  (JetSMART)
-2026-11-26 15:13:35    3ra pasada: 6 combinaciones con días de diferencia (±1)
-2026-11-26 15:13:36    · AEP-NQN 2027-01-17 / 2027-01-26 (9 días): sin vuelos
-2026-11-26 15:13:37    ✓ EZE-NQN 2027-01-17 / 2027-01-26 (9 días): USD 377 x persona  (JetSMART)
-2026-11-26 15:13:38    ✓ AEP-NQN 2027-01-18 / 2027-01-27 (9 días): USD 244 x persona  (Aerolíneas Argentinas)
-2026-11-26 15:13:39    · EZE-NQN 2027-01-18 / 2027-01-27 (9 días): sin vuelos
-2026-11-26 15:13:40    · AEP-NQN 2027-01-19 / 2027-01-28 (9 días): sin vuelos
-2026-11-26 15:13:40    · EZE-NQN 2027-01-19 / 2027-01-28 (9 días): sin vuelos
-2026-11-26 15:13:41    ✓ AEP-NQN 2027-01-19 / 2027-01-24 (5 días): USD 146 x persona  (JetSMART)
-2026-11-26 15:13:42    ✓ EZE-NQN 2027-01-19 / 2027-01-24 (5 días): USD 368 x persona  (JetSMART)
-2026-11-26 15:13:43    · AEP-NQN 2027-01-20 / 2027-01-25 (5 días): sin vuelos
-2026-11-26 15:13:44    ✓ EZE-NQN 2027-01-20 / 2027-01-25 (5 días): USD 374 x persona  (JetSMART)
-2026-11-26 15:13:45    ✓ AEP-NQN 2027-01-21 / 2027-01-26 (5 días): USD 140 x persona  (JetSMART)
-2026-11-26 15:13:45    ✓ EZE-NQN 2027-01-21 / 2027-01-26 (5 días): USD 111 x persona  (JetSMART)
-2026-11-26 15:13:45    Pasajes de solo ida: 10 días de ida + 10 de vuelta (~40 consultas; cubre todas las duraciones de 5 a 9 días)
-2026-11-26 15:13:46    ⏸ Google se puso estricto: bajo la velocidad (una consulta cada ~1.8 s)
-2026-11-26 15:13:47    · AEP-NQN 2027-01-15 solo ida: sin vuelos
-2026-11-26 15:13:48    ✓ AEP-NQN 2027-01-16 solo ida: USD 82 x persona  (JetSMART)
-2026-11-26 15:13:49    · AEP-NQN 2027-01-17 solo ida: sin vuelos
-2026-11-26 15:13:51    ✓ AEP-NQN 2027-01-18 solo ida: USD 48 x persona  (JetSMART)
-2026-11-26 15:13:53    ✓ AEP-NQN 2027-01-19 solo ida: USD 48 x persona  (JetSMART)
-2026-11-26 15:13:55    · AEP-NQN 2027-01-20 solo ida: sin vuelos
-2026-11-26 15:13:57    · AEP-NQN 2027-01-21 solo ida: sin vuelos
-2026-11-26 15:13:58    · AEP-NQN 2027-01-22 solo ida: sin vuelos
-2026-11-26 15:14:01    · AEP-NQN 2027-01-23 solo ida: sin vuelos
-2026-11-26 15:14:03    ✓ NQN-AEP 2027-01-19 solo ida: USD 92 x persona  (JetSMART)
-2026-11-26 15:14:04    · NQN-AEP 2027-01-20 solo ida: sin vuelos
-2026-11-26 15:14:06    ✓ NQN-AEP 2027-01-21 solo ida: USD 52 x persona  (JetSMART)
-2026-11-26 15:14:07    · NQN-AEP 2027-01-22 solo ida: sin vuelos
-2026-11-26 15:14:08    · NQN-AEP 2027-01-23 solo ida: sin vuelos
-2026-11-26 15:14:09    · AEP-NQN 2027-01-14 solo ida: sin vuelos
-2026-11-26 15:14:10    · NQN-AEP 2027-01-24 solo ida: sin vuelos
-2026-11-26 15:14:11    · NQN-AEP 2027-01-25 solo ida: sin vuelos
-2026-11-26 15:14:12    · NQN-AEP 2027-01-26 solo ida: sin vuelos
-2026-11-26 15:14:14    · NQN-AEP 2027-01-27 solo ida: sin vuelos
-2026-11-26 15:14:15    ✓ NQN-AEP 2027-01-28 solo ida: USD 52 x persona  (JetSMART)
-2026-11-26 15:14:16    · EZE-NQN 2027-01-14 solo ida: sin vuelos
-2026-11-26 15:14:17    · EZE-NQN 2027-01-15 solo ida: sin vuelos
-2026-11-26 15:14:19    ✓ EZE-NQN 2027-01-16 solo ida: USD 123 x persona  (JetSMART)
-2026-11-26 15:14:20    ✓ EZE-NQN 2027-01-17 solo ida: USD 48 x persona  (JetSMART)
-2026-11-26 15:14:22    · EZE-NQN 2027-01-18 solo ida: sin vuelos
-2026-11-26 15:14:23    ✓ EZE-NQN 2027-01-19 solo ida: USD 191 x persona  (Aerolíneas Argentinas)
-2026-11-26 15:14:24    · EZE-NQN 2027-01-20 solo ida: sin vuelos
-2026-11-26 15:14:25    · EZE-NQN 2027-01-21 solo ida: sin vuelos
-2026-11-26 15:14:26    · EZE-NQN 2027-01-22 solo ida: sin vuelos
-2026-11-26 15:14:27    · EZE-NQN 2027-01-23 solo ida: sin vuelos
-2026-11-26 15:14:28    ✓ NQN-EZE 2027-01-19 solo ida: USD 52 x persona  (JetSMART)
-2026-11-26 15:14:28    · NQN-EZE 2027-01-20 solo ida: sin vuelos
-2026-11-26 15:14:30    ✓ NQN-EZE 2027-01-21 solo ida: USD 52 x persona  (JetSMART)
-2026-11-26 15:14:30    · NQN-EZE 2027-01-22 solo ida: sin vuelos
-2026-11-26 15:14:31    · NQN-EZE 2027-01-23 solo ida: sin vuelos
-2026-11-26 15:14:32    · NQN-EZE 2027-01-24 solo ida: sin vuelos
-2026-11-26 15:14:33    · NQN-EZE 2027-01-25 solo ida: sin vuelos
-2026-11-26 15:14:34    · NQN-EZE 2027-01-26 solo ida: sin vuelos
-2026-11-26 15:14:35    · NQN-EZE 2027-01-27 solo ida: sin vuelos
-2026-11-26 15:14:35    ✓ NQN-EZE 2027-01-28 solo ida: USD 52 x persona  (JetSMART)
-2026-11-26 15:14:35    ► Mejor con 2 pasajes: USD 100 x persona — 2027-01-19 a 2027-01-28 (JetSMART)
-2026-11-26 15:14:35    Horarios de vuelta: 15 consultas de solo ida para las mejores opciones
-2026-11-26 15:14:36    ✓ NQN-EZE 2027-01-26 solo ida: USD 52 x persona  (JetSMART)
-2026-11-26 15:14:37    · NQN-EZE 2027-01-28 solo ida: sin vuelos
-2026-11-26 15:14:38    · NQN-AEP 2027-01-25 solo ida: sin vuelos
-2026-11-26 15:14:38    · NQN-AEP 2027-01-20 solo ida: sin vuelos
-2026-11-26 15:14:39    ✓ NQN-AEP 2027-01-27 solo ida: USD 64 x persona  (JetSMART)
-2026-11-26 15:14:40    ✓ NQN-AEP 2027-01-28 solo ida: USD 52 x persona  (JetSMART)
-2026-11-26 15:14:41    · NQN-EZE 2027-01-20 solo ida: sin vuelos
-2026-11-26 15:14:41    ✓ NQN-EZE 2027-01-24 solo ida: USD 52 x persona  (JetSMART)
-2026-11-26 15:14:42    ✓ NQN-AEP 2027-01-26 solo ida: USD 58 x persona  (JetSMART)
-2026-11-26 15:14:43    ✓ NQN-AEP 2027-01-22 solo ida: USD 52 x persona  (JetSMART)
-2026-11-26 15:14:44    ✓ NQN-EZE 2027-01-21 solo ida: USD 52 x persona  (JetSMART)
-2026-11-26 15:14:45    · NQN-AEP 2027-01-23 solo ida: sin vuelos
-2026-11-26 15:14:46    ✓ NQN-EZE 2027-01-27 solo ida: USD 52 x persona  (JetSMART)
-2026-11-26 15:14:47    ✓ NQN-AEP 2027-01-24 solo ida: USD 64 x persona  (JetSMART)
-2026-11-26 15:14:47    ✓ NQN-EZE 2027-01-25 solo ida: USD 52 x persona  (JetSMART)
-2026-11-26 15:14:47    ► Mejor: USD 100 x persona — 2027-01-18 a 2027-01-26
-2026-11-26 15:14:47    ► Mejor cambiando días: USD 100 x persona — 2027-01-19 a 2027-01-28 (9 días)
-2026-11-26 15:14:47  == Japon ==  [proveedor: fast_flights · estrategia: ida_vuelta · equipaje: despachado]
-2026-11-26 15:14:47    Filtros: salidas 2027-04-01 a 2027-04-30 · vuelta hasta 2027-04-30
-2026-11-26 15:14:47    1ra pasada: 3 combinaciones de fechas (~3 consultas)
-2026-11-26 15:14:48    ✓ EZE-NRT 2027-04-01 / 2027-04-15 (14 días): USD 2,542 x persona  (Ethiopian)
-2026-11-26 15:14:49    · EZE-NRT 2027-04-08 / 2027-04-22 (14 días): sin vuelos
-2026-11-26 15:14:49    ✓ EZE-NRT 2027-04-15 / 2027-04-29 (14 días): USD 2,576 x persona  (Ethiopian)
-2026-11-26 15:14:49    2da pasada: 6 salidas día por día alrededor de las más baratas
-2026-11-26 15:14:50    ✓ EZE-NRT 2027-04-02 / 2027-04-16 (14 días): USD 3,216 x persona  (Ethiopian)
-2026-11-26 15:14:51    · EZE-NRT 2027-04-03 / 2027-04-17 (14 días): sin vuelos
-2026-11-26 15:14:52    ✓ EZE-NRT 2027-04-04 / 2027-04-18 (14 días): USD 3,250 x persona  (Emirates)
-2026-11-26 15:14:53    · EZE-NRT 2027-04-05 / 2027-04-19 (14 días): sin vuelos
-2026-11-26 15:14:54    ✓ EZE-NRT 2027-04-06 / 2027-04-20 (14 días): USD 2,636 x persona  (Emirates)
-2026-11-26 15:14:54    · EZE-NRT 2027-04-07 / 2027-04-21 (14 días): sin vuelos
-2026-11-26 15:14:54    Escalas armadas por separado vía YYZ, DXB, SYD para las 1 mejores fechas
-2026-11-26 15:14:55    · EZE-YYZ 2027-04-01 solo ida: sin vuelos
-2026-11-26 15:14:56    ✓ NRT-YYZ 2027-04-15 solo ida: USD 372 x persona  (ZIPAIR Tokyo)
-2026-11-26 15:14:57    · EZE-DXB 2027-04-01 solo ida: sin vuelos
-2026-11-26 15:14:58    ✓ NRT-DXB 2027-04-15 solo ida: USD 547 x persona  (Philippine Airlines)
-2026-11-26 15:14:58    ✓ EZE-SYD 2027-04-01 solo ida: USD 1,801 x persona  (LATAM)
-2026-11-26 15:14:59    · NRT-SYD 2027-04-15 solo ida: sin vuelos
-2026-11-26 15:15:00    ✓ EZE-NRT 2027-04-01 solo ida: USD 1,416 x persona  (Ethiopian)
-2026-11-26 15:15:01    ✓ NRT-EZE 2027-04-15 solo ida: USD 1,144 x persona  (ANA, Ethiopian)
-2026-11-26 15:15:02    · YYZ-EZE 2027-04-15 solo ida: sin vuelos
-2026-11-26 15:15:03    ✓ YYZ-EZE 2027-04-16 solo ida: USD 384 x persona  (Delta, LATAM)
-2026-11-26 15:15:04    · DXB-EZE 2027-04-16 solo ida: sin vuelos
-2026-11-26 15:15:04    · DXB-EZE 2027-04-17 solo ida: sin vuelos
-2026-11-26 15:15:05    ✓ SYD-NRT 2027-04-02 solo ida: USD 521 x persona  (China Airlines)
-2026-11-26 15:15:06    · SYD-NRT 2027-04-03 solo ida: sin vuelos
-2026-11-26 15:15:06    ► Escala armada más barata 2027-04-01 a 2027-04-15: USD 2,238 x persona (antes 2,542) — EZE → GRU → ADD → ICN → NRT
-2026-11-26 15:15:06    Comparando 5 mejores opciones sin equipaje
-2026-11-26 15:15:06    · EZE-NRT 2027-04-15 / 2027-04-29 (14 días) [sin equipaje]: sin vuelos
-2026-11-26 15:15:07    · EZE-NRT 2027-04-06 / 2027-04-20 (14 días) [sin equipaje]: sin vuelos
-2026-11-26 15:15:08    · EZE-NRT 2027-04-02 / 2027-04-16 (14 días) [sin equipaje]: sin vuelos
-2026-11-26 15:15:09    ✓ EZE-NRT 2027-04-04 / 2027-04-18 (14 días) [sin equipaje]: USD 3,250 x persona  (Emirates)
-2026-11-26 15:15:09    · EZE-NRT 2027-04-01 solo ida [sin equipaje]: sin vuelos
-2026-11-26 15:15:10    ✓ NRT-YYZ 2027-04-15 solo ida [sin equipaje]: USD 372 x persona  (ZIPAIR Tokyo)
-2026-11-26 15:15:11    · YYZ-EZE 2027-04-16 solo ida [sin equipaje]: sin vuelos
-2026-11-26 15:15:11    Horarios de vuelta: 5 consultas de solo ida para las mejores opciones
-2026-11-26 15:15:12    · NRT-EZE 2027-04-15 solo ida: sin vuelos
-2026-11-26 15:15:12    · NRT-EZE 2027-04-29 solo ida: sin vuelos
-2026-11-26 15:15:14    ✓ NRT-EZE 2027-04-20 solo ida: USD 1,182 x persona  (China Airlines, COPA)
-2026-11-26 15:15:14    · NRT-EZE 2027-04-16 solo ida: sin vuelos
-2026-11-26 15:15:15    ✓ NRT-EZE 2027-04-18 solo ida: USD 958 x persona  (Ethiopian)
-2026-11-26 15:15:15    ► Mejor: USD 2,238 x persona — 2027-04-01 a 2027-04-15
-2026-11-26 15:15:32  == Confirmando precios en vivo: Cipolletti ==
-2026-11-26 15:18:38    14 links abiertos en 186 s: 24 iguales, 0 con otro precio (corregidos), 0 ya no disponibles, 2 sin poder confirmar
-2026-11-26 15:18:38  == Confirmando precios en vivo: Japon ==
-2026-11-26 15:19:33    7 links abiertos en 55 s: 1 iguales, 23 con otro precio (corregidos), 0 ya no disponibles, 2 sin poder confirmar
-2026-11-26 15:19:33  Reportes: salida/reportes/index.html (+2 individuales)
+2026-11-26 15:21:34  == Cipolletti ==  [proveedor: fast_flights · estrategia: ambas]
+2026-11-26 15:21:34    Filtros: salidas 2027-01-14 a 2027-01-28 · vuelta hasta 2027-01-28
+2026-11-26 15:21:34    -- Equipaje: ninguno --
+2026-11-26 15:21:34    1ra pasada: 13 combinaciones de fechas (~26 consultas)
+2026-11-26 15:21:35    · AEP-NQN 2027-01-14 / 2027-01-20 (6 días): sin vuelos
+2026-11-26 15:21:35    · EZE-NQN 2027-01-14 / 2027-01-20 (6 días): sin vuelos
+2026-11-26 15:21:36    · AEP-NQN 2027-01-14 / 2027-01-21 (7 días): sin vuelos
+2026-11-26 15:21:36    · EZE-NQN 2027-01-14 / 2027-01-21 (7 días): sin vuelos
+2026-11-26 15:21:37    · AEP-NQN 2027-01-14 / 2027-01-22 (8 días): sin vuelos
+2026-11-26 15:21:38    · EZE-NQN 2027-01-14 / 2027-01-22 (8 días): sin vuelos
+2026-11-26 15:21:39    ✓ AEP-NQN 2027-01-16 / 2027-01-22 (6 días): USD 98 x persona  (JetSMART)
+2026-11-26 15:21:39    ✓ EZE-NQN 2027-01-16 / 2027-01-22 (6 días): USD 208 x persona  (JetSMART)
+2026-11-26 15:21:40    · AEP-NQN 2027-01-16 / 2027-01-23 (7 días): sin vuelos
+2026-11-26 15:21:41    · EZE-NQN 2027-01-16 / 2027-01-23 (7 días): sin vuelos
+2026-11-26 15:21:42    · AEP-NQN 2027-01-16 / 2027-01-24 (8 días): sin vuelos
+2026-11-26 15:21:43    · EZE-NQN 2027-01-16 / 2027-01-24 (8 días): sin vuelos
+2026-11-26 15:21:44    · AEP-NQN 2027-01-18 / 2027-01-24 (6 días): sin vuelos
+2026-11-26 15:21:45    · EZE-NQN 2027-01-18 / 2027-01-24 (6 días): sin vuelos
+2026-11-26 15:21:46    · AEP-NQN 2027-01-18 / 2027-01-25 (7 días): sin vuelos
+2026-11-26 15:21:46    · EZE-NQN 2027-01-18 / 2027-01-25 (7 días): sin vuelos
+2026-11-26 15:21:47    · AEP-NQN 2027-01-18 / 2027-01-26 (8 días): sin vuelos
+2026-11-26 15:21:48    ✓ EZE-NQN 2027-01-18 / 2027-01-26 (8 días): USD 58 x persona  (JetSMART)
+2026-11-26 15:21:49    · AEP-NQN 2027-01-20 / 2027-01-26 (6 días): sin vuelos
+2026-11-26 15:21:50    · EZE-NQN 2027-01-20 / 2027-01-26 (6 días): sin vuelos
+2026-11-26 15:21:50    · AEP-NQN 2027-01-20 / 2027-01-27 (7 días): sin vuelos
+2026-11-26 15:21:51    · EZE-NQN 2027-01-20 / 2027-01-27 (7 días): sin vuelos
+2026-11-26 15:21:52    · AEP-NQN 2027-01-20 / 2027-01-28 (8 días): sin vuelos
+2026-11-26 15:21:53    ✓ EZE-NQN 2027-01-20 / 2027-01-28 (8 días): USD 58 x persona  (JetSMART)
+2026-11-26 15:21:54    · AEP-NQN 2027-01-22 / 2027-01-28 (6 días): sin vuelos
+2026-11-26 15:21:55    ✓ EZE-NQN 2027-01-22 / 2027-01-28 (6 días): USD 58 x persona  (JetSMART)
+2026-11-26 15:21:55    2da pasada: 8 salidas día por día alrededor de las más baratas
+2026-11-26 15:21:55    ✓ AEP-NQN 2027-01-17 / 2027-01-23 (6 días): USD 234 x persona  (JetSMART)
+2026-11-26 15:21:56    ⏸ Google se puso estricto: bajo la velocidad (una consulta cada ~1.8 s)
+2026-11-26 15:21:57    · AEP-NQN 2027-01-17 / 2027-01-24 (7 días): sin vuelos
+2026-11-26 15:21:57    · EZE-NQN 2027-01-17 / 2027-01-24 (7 días): sin vuelos
+2026-11-26 15:21:58    · AEP-NQN 2027-01-17 / 2027-01-25 (8 días): sin vuelos
+2026-11-26 15:22:00    · EZE-NQN 2027-01-17 / 2027-01-25 (8 días): sin vuelos
+2026-11-26 15:22:02    · AEP-NQN 2027-01-19 / 2027-01-25 (6 días): sin vuelos
+2026-11-26 15:22:03    · EZE-NQN 2027-01-19 / 2027-01-25 (6 días): sin vuelos
+2026-11-26 15:22:05    · AEP-NQN 2027-01-19 / 2027-01-26 (7 días): sin vuelos
+2026-11-26 15:22:07    · EZE-NQN 2027-01-19 / 2027-01-26 (7 días): sin vuelos
+2026-11-26 15:22:09    · AEP-NQN 2027-01-19 / 2027-01-27 (8 días): sin vuelos
+2026-11-26 15:22:10    ✓ EZE-NQN 2027-01-19 / 2027-01-27 (8 días): USD 222 x persona  (Aerolíneas Argentinas)
+2026-11-26 15:22:12    ✓ AEP-NQN 2027-01-21 / 2027-01-27 (6 días): USD 104 x persona  (JetSMART)
+2026-11-26 15:22:13    ✓ EZE-NQN 2027-01-21 / 2027-01-27 (6 días): USD 70 x persona  (JetSMART)
+2026-11-26 15:22:15    · AEP-NQN 2027-01-21 / 2027-01-28 (7 días): sin vuelos
+2026-11-26 15:22:16    ✓ EZE-NQN 2027-01-21 / 2027-01-28 (7 días): USD 70 x persona  (JetSMART)
+2026-11-26 15:22:23    · EZE-NQN 2027-01-17 / 2027-01-23 (6 días): sin vuelos
+2026-11-26 15:22:23    3ra pasada: 3 combinaciones con días de diferencia (±1)
+2026-11-26 15:22:23    · AEP-NQN 2027-01-17 / 2027-01-26 (9 días): sin vuelos
+2026-11-26 15:22:24    · EZE-NQN 2027-01-17 / 2027-01-26 (9 días): sin vuelos
+2026-11-26 15:22:26    · AEP-NQN 2027-01-18 / 2027-01-27 (9 días): sin vuelos
+2026-11-26 15:22:27    ✓ EZE-NQN 2027-01-18 / 2027-01-27 (9 días): USD 58 x persona  (JetSMART)
+2026-11-26 15:22:28    · AEP-NQN 2027-01-19 / 2027-01-28 (9 días): sin vuelos
+2026-11-26 15:22:29    ✓ EZE-NQN 2027-01-19 / 2027-01-28 (9 días): USD 222 x persona  (Aerolíneas Argentinas)
+2026-11-26 15:22:29    Pasajes de solo ida: 10 días de ida + 10 de vuelta (~40 consultas; cubre todas las duraciones de 5 a 9 días)
+2026-11-26 15:22:30    · AEP-NQN 2027-01-14 solo ida: sin vuelos
+2026-11-26 15:22:32    ✓ AEP-NQN 2027-01-15 solo ida: USD 26 x persona  (JetSMART)
+2026-11-26 15:22:33    · AEP-NQN 2027-01-16 solo ida: sin vuelos
+2026-11-26 15:22:34    ✓ AEP-NQN 2027-01-17 solo ida: USD 140 x persona  (JetSMART)
+2026-11-26 15:22:35    · AEP-NQN 2027-01-18 solo ida: sin vuelos
+2026-11-26 15:22:36    · AEP-NQN 2027-01-19 solo ida: sin vuelos
+2026-11-26 15:22:37    · AEP-NQN 2027-01-20 solo ida: sin vuelos
+2026-11-26 15:22:38    · AEP-NQN 2027-01-21 solo ida: sin vuelos
+2026-11-26 15:22:39    · AEP-NQN 2027-01-22 solo ida: sin vuelos
+2026-11-26 15:22:40    · AEP-NQN 2027-01-23 solo ida: sin vuelos
+2026-11-26 15:22:41    ✓ NQN-AEP 2027-01-19 solo ida: USD 71 x persona  (JetSMART)
+2026-11-26 15:22:42    · NQN-AEP 2027-01-20 solo ida: sin vuelos
+2026-11-26 15:22:43    · NQN-AEP 2027-01-21 solo ida: sin vuelos
+2026-11-26 15:22:44    · NQN-AEP 2027-01-22 solo ida: sin vuelos
+2026-11-26 15:22:45    · NQN-AEP 2027-01-23 solo ida: sin vuelos
+2026-11-26 15:22:46    ✓ NQN-AEP 2027-01-24 solo ida: USD 43 x persona  (JetSMART)
+2026-11-26 15:22:46    ✓ NQN-AEP 2027-01-25 solo ida: USD 32 x persona  (JetSMART)
+2026-11-26 15:22:47    ✓ NQN-AEP 2027-01-26 solo ida: USD 32 x persona  (JetSMART)
+2026-11-26 15:22:48    · NQN-AEP 2027-01-27 solo ida: sin vuelos
+2026-11-26 15:22:49    ✓ NQN-AEP 2027-01-28 solo ida: USD 32 x persona  (JetSMART)
+2026-11-26 15:22:49    ✓ EZE-NQN 2027-01-14 solo ida: USD 26 x persona  (JetSMART)
+2026-11-26 15:22:50    · EZE-NQN 2027-01-15 solo ida: sin vuelos
+2026-11-26 15:22:51    ✓ EZE-NQN 2027-01-16 solo ida: USD 100 x persona  (JetSMART)
+2026-11-26 15:22:52    ✓ EZE-NQN 2027-01-17 solo ida: USD 26 x persona  (JetSMART)
+2026-11-26 15:22:53    · EZE-NQN 2027-01-18 solo ida: sin vuelos
+2026-11-26 15:22:53    · EZE-NQN 2027-01-19 solo ida: sin vuelos
+2026-11-26 15:22:54    · EZE-NQN 2027-01-20 solo ida: sin vuelos
+2026-11-26 15:22:55    · EZE-NQN 2027-01-21 solo ida: sin vuelos
+2026-11-26 15:22:56    ✓ EZE-NQN 2027-01-22 solo ida: USD 32 x persona  (JetSMART)
+2026-11-26 15:22:57    · EZE-NQN 2027-01-23 solo ida: sin vuelos
+2026-11-26 15:22:57    · NQN-EZE 2027-01-19 solo ida: sin vuelos
+2026-11-26 15:22:58    · NQN-EZE 2027-01-20 solo ida: sin vuelos
+2026-11-26 15:22:59    · NQN-EZE 2027-01-21 solo ida: sin vuelos
+2026-11-26 15:22:59    · NQN-EZE 2027-01-22 solo ida: sin vuelos
+2026-11-26 15:23:00    · NQN-EZE 2027-01-23 solo ida: sin vuelos
+2026-11-26 15:23:01    ✓ NQN-EZE 2027-01-24 solo ida: USD 32 x persona  (JetSMART)
+2026-11-26 15:23:02    ✓ NQN-EZE 2027-01-25 solo ida: USD 32 x persona  (JetSMART)
+2026-11-26 15:23:03    ✓ NQN-EZE 2027-01-26 solo ida: USD 32 x persona  (JetSMART)
+2026-11-26 15:23:04    ✓ NQN-EZE 2027-01-27 solo ida: USD 32 x persona  (JetSMART)
+2026-11-26 15:23:04    ✓ NQN-EZE 2027-01-28 solo ida: USD 32 x persona  (JetSMART)
+2026-11-26 15:23:04    ► Mejor con 2 pasajes: USD 58 x persona — 2027-01-15 a 2027-01-24 (JetSMART)
+2026-11-26 15:23:04    Horarios de vuelta: 7 consultas de solo ida para las mejores opciones
+2026-11-26 15:23:05    · NQN-EZE 2027-01-26 solo ida: sin vuelos
+2026-11-26 15:23:06    · NQN-EZE 2027-01-28 solo ida: sin vuelos
+2026-11-26 15:23:06    · NQN-EZE 2027-01-27 solo ida: sin vuelos
+2026-11-26 15:23:07    · NQN-AEP 2027-01-22 solo ida: sin vuelos
+2026-11-26 15:23:08    · NQN-AEP 2027-01-27 solo ida: sin vuelos
+2026-11-26 15:23:09    ✓ NQN-EZE 2027-01-22 solo ida: USD 108 x persona  (Aerolíneas Argentinas)
+2026-11-26 15:23:10    · NQN-AEP 2027-01-23 solo ida: sin vuelos
+2026-11-26 15:23:10    -- Equipaje: mano --
+2026-11-26 15:23:10    1ra pasada: 13 combinaciones de fechas (~26 consultas)
+2026-11-26 15:23:11    · AEP-NQN 2027-01-14 / 2027-01-20 (6 días): sin vuelos
+2026-11-26 15:23:11    · EZE-NQN 2027-01-14 / 2027-01-20 (6 días): sin vuelos
+2026-11-26 15:23:12    ✓ AEP-NQN 2027-01-14 / 2027-01-21 (7 días): USD 135 x persona  (JetSMART)
+2026-11-26 15:23:13    · EZE-NQN 2027-01-14 / 2027-01-21 (7 días): sin vuelos
+2026-11-26 15:23:14    ✓ AEP-NQN 2027-01-14 / 2027-01-22 (8 días): USD 135 x persona  (JetSMART)
+2026-11-26 15:23:15    ✓ EZE-NQN 2027-01-14 / 2027-01-22 (8 días): USD 194 x persona  (Aerolíneas Argentinas)
+2026-11-26 15:23:15    · AEP-NQN 2027-01-16 / 2027-01-22 (6 días): sin vuelos
+2026-11-26 15:23:16    ✓ EZE-NQN 2027-01-16 / 2027-01-22 (6 días): USD 298 x persona  (Aerolíneas Argentinas)
+2026-11-26 15:23:17    · AEP-NQN 2027-01-16 / 2027-01-23 (7 días): sin vuelos
+2026-11-26 15:23:18    · EZE-NQN 2027-01-16 / 2027-01-23 (7 días): sin vuelos
+2026-11-26 15:23:18    · AEP-NQN 2027-01-16 / 2027-01-24 (8 días): sin vuelos
+2026-11-26 15:23:19    · EZE-NQN 2027-01-16 / 2027-01-24 (8 días): sin vuelos
+2026-11-26 15:23:20    · AEP-NQN 2027-01-18 / 2027-01-24 (6 días): sin vuelos
+2026-11-26 15:23:21    · EZE-NQN 2027-01-18 / 2027-01-24 (6 días): sin vuelos
+2026-11-26 15:23:22    · AEP-NQN 2027-01-18 / 2027-01-25 (7 días): sin vuelos
+2026-11-26 15:23:22    · EZE-NQN 2027-01-18 / 2027-01-25 (7 días): sin vuelos
+2026-11-26 15:23:23    · AEP-NQN 2027-01-18 / 2027-01-26 (8 días): sin vuelos
+2026-11-26 15:23:24    ✓ EZE-NQN 2027-01-18 / 2027-01-26 (8 días): USD 100 x persona  (JetSMART)
+2026-11-26 15:23:25    · AEP-NQN 2027-01-20 / 2027-01-26 (6 días): sin vuelos
+2026-11-26 15:23:26    · EZE-NQN 2027-01-20 / 2027-01-26 (6 días): sin vuelos
+2026-11-26 15:23:27    · AEP-NQN 2027-01-20 / 2027-01-27 (7 días): sin vuelos
+2026-11-26 15:23:27    · EZE-NQN 2027-01-20 / 2027-01-27 (7 días): sin vuelos
+2026-11-26 15:23:28    · AEP-NQN 2027-01-20 / 2027-01-28 (8 días): sin vuelos
+2026-11-26 15:23:29    · EZE-NQN 2027-01-20 / 2027-01-28 (8 días): sin vuelos
+2026-11-26 15:23:30    ✓ AEP-NQN 2027-01-22 / 2027-01-28 (6 días): USD 170 x persona  (JetSMART)
+2026-11-26 15:23:31    · EZE-NQN 2027-01-22 / 2027-01-28 (6 días): sin vuelos
+2026-11-26 15:23:31    2da pasada: 9 salidas día por día alrededor de las más baratas
+2026-11-26 15:23:32    · AEP-NQN 2027-01-17 / 2027-01-23 (6 días): sin vuelos
+2026-11-26 15:23:32    ✓ EZE-NQN 2027-01-17 / 2027-01-23 (6 días): USD 201 x persona  (JetSMART)
+2026-11-26 15:23:33    ✓ AEP-NQN 2027-01-17 / 2027-01-24 (7 días): USD 212 x persona  (JetSMART)
+2026-11-26 15:23:34    · EZE-NQN 2027-01-17 / 2027-01-24 (7 días): sin vuelos
+2026-11-26 15:23:35    · AEP-NQN 2027-01-17 / 2027-01-25 (8 días): sin vuelos
+2026-11-26 15:23:36    · EZE-NQN 2027-01-17 / 2027-01-25 (8 días): sin vuelos
+2026-11-26 15:23:36    ✓ AEP-NQN 2027-01-19 / 2027-01-25 (6 días): USD 100 x persona  (JetSMART)
+2026-11-26 15:23:37    · EZE-NQN 2027-01-19 / 2027-01-25 (6 días): sin vuelos
+2026-11-26 15:23:38    · AEP-NQN 2027-01-19 / 2027-01-26 (7 días): sin vuelos
+2026-11-26 15:23:39    · EZE-NQN 2027-01-19 / 2027-01-26 (7 días): sin vuelos
+2026-11-26 15:23:40    ✓ AEP-NQN 2027-01-19 / 2027-01-27 (8 días): USD 146 x persona  (JetSMART)
+2026-11-26 15:23:40    ✓ EZE-NQN 2027-01-19 / 2027-01-27 (8 días): USD 282 x persona  (Aerolíneas Argentinas)
+2026-11-26 15:23:41    · AEP-NQN 2027-01-15 / 2027-01-21 (6 días): sin vuelos
+2026-11-26 15:23:42    ✓ EZE-NQN 2027-01-15 / 2027-01-21 (6 días): USD 148 x persona  (JetSMART)
+2026-11-26 15:23:43    ✓ AEP-NQN 2027-01-15 / 2027-01-22 (7 días): USD 244 x persona  (Aerolíneas Argentinas)
+2026-11-26 15:23:43    · EZE-NQN 2027-01-15 / 2027-01-22 (7 días): sin vuelos
+2026-11-26 15:23:44    · AEP-NQN 2027-01-15 / 2027-01-23 (8 días): sin vuelos
+2026-11-26 15:23:45    · EZE-NQN 2027-01-15 / 2027-01-23 (8 días): sin vuelos
+2026-11-26 15:23:45    3ra pasada: 3 combinaciones con días de diferencia (±1)
+2026-11-26 15:23:46    · AEP-NQN 2027-01-17 / 2027-01-26 (9 días): sin vuelos
+2026-11-26 15:23:47    · EZE-NQN 2027-01-17 / 2027-01-26 (9 días): sin vuelos
+2026-11-26 15:23:47    ✓ AEP-NQN 2027-01-18 / 2027-01-27 (9 días): USD 244 x persona  (Aerolíneas Argentinas)
+2026-11-26 15:23:48    ✓ EZE-NQN 2027-01-18 / 2027-01-27 (9 días): USD 202 x persona  (JetSMART)
+2026-11-26 15:23:49    · AEP-NQN 2027-01-19 / 2027-01-28 (9 días): sin vuelos
+2026-11-26 15:23:50    · EZE-NQN 2027-01-19 / 2027-01-28 (9 días): sin vuelos
+2026-11-26 15:23:50    Pasajes de solo ida: 10 días de ida + 10 de vuelta (~40 consultas; cubre todas las duraciones de 5 a 9 días)
+2026-11-26 15:23:51    · AEP-NQN 2027-01-14 solo ida: sin vuelos
+2026-11-26 15:23:51    ✓ AEP-NQN 2027-01-15 solo ida: USD 48 x persona  (JetSMART)
+2026-11-26 15:23:52    · AEP-NQN 2027-01-16 solo ida: sin vuelos
+2026-11-26 15:23:53    · AEP-NQN 2027-01-17 solo ida: sin vuelos
+2026-11-26 15:23:54    · AEP-NQN 2027-01-18 solo ida: sin vuelos
+2026-11-26 15:23:55    ✓ AEP-NQN 2027-01-19 solo ida: USD 48 x persona  (JetSMART)
+2026-11-26 15:23:55    ✓ AEP-NQN 2027-01-20 solo ida: USD 90 x persona  (Aerolíneas Argentinas)
+2026-11-26 15:23:56    · AEP-NQN 2027-01-21 solo ida: sin vuelos
+2026-11-26 15:23:57    · AEP-NQN 2027-01-22 solo ida: sin vuelos
+2026-11-26 15:23:58    ✓ AEP-NQN 2027-01-23 solo ida: USD 149 x persona  (JetSMART)
+2026-11-26 15:23:59    ✓ NQN-AEP 2027-01-19 solo ida: USD 92 x persona  (JetSMART)
+2026-11-26 15:24:00    · NQN-AEP 2027-01-20 solo ida: sin vuelos
+2026-11-26 15:24:00    · NQN-AEP 2027-01-21 solo ida: sin vuelos
+2026-11-26 15:24:01    ✓ NQN-AEP 2027-01-22 solo ida: USD 58 x persona  (JetSMART)
+2026-11-26 15:24:02    · NQN-AEP 2027-01-23 solo ida: sin vuelos
+2026-11-26 15:24:02    ✓ NQN-AEP 2027-01-24 solo ida: USD 64 x persona  (JetSMART)
+2026-11-26 15:24:03    · NQN-AEP 2027-01-25 solo ida: sin vuelos
+2026-11-26 15:24:04    ✓ NQN-AEP 2027-01-26 solo ida: USD 52 x persona  (JetSMART)
+2026-11-26 15:24:05    · NQN-AEP 2027-01-27 solo ida: sin vuelos
+2026-11-26 15:24:06    · NQN-AEP 2027-01-28 solo ida: sin vuelos
+2026-11-26 15:24:06    ✓ EZE-NQN 2027-01-14 solo ida: USD 48 x persona  (JetSMART)
+2026-11-26 15:24:07    · EZE-NQN 2027-01-15 solo ida: sin vuelos
+2026-11-26 15:24:08    · EZE-NQN 2027-01-16 solo ida: sin vuelos
+2026-11-26 15:24:09    ✓ EZE-NQN 2027-01-17 solo ida: USD 48 x persona  (JetSMART)
+2026-11-26 15:24:09    · EZE-NQN 2027-01-18 solo ida: sin vuelos
+2026-11-26 15:24:10    ✓ EZE-NQN 2027-01-19 solo ida: USD 191 x persona  (Aerolíneas Argentinas)
+2026-11-26 15:24:11    ✓ EZE-NQN 2027-01-20 solo ida: USD 48 x persona  (JetSMART)
+2026-11-26 15:24:12    ✓ EZE-NQN 2027-01-21 solo ida: USD 59 x persona  (JetSMART)
+2026-11-26 15:24:13    ✓ EZE-NQN 2027-01-22 solo ida: USD 54 x persona  (JetSMART)
+2026-11-26 15:24:13    · EZE-NQN 2027-01-23 solo ida: sin vuelos
+2026-11-26 15:24:14    · NQN-EZE 2027-01-19 solo ida: sin vuelos
+2026-11-26 15:24:15    ✓ NQN-EZE 2027-01-20 solo ida: USD 52 x persona  (JetSMART)
+2026-11-26 15:24:16    · NQN-EZE 2027-01-21 solo ida: sin vuelos
+2026-11-26 15:24:17    ✓ NQN-EZE 2027-01-22 solo ida: USD 108 x persona  (Aerolíneas Argentinas)
+2026-11-26 15:24:18    ✓ NQN-EZE 2027-01-23 solo ida: USD 58 x persona  (JetSMART)
+2026-11-26 15:24:19    · NQN-EZE 2027-01-24 solo ida: sin vuelos
+2026-11-26 15:24:19    · NQN-EZE 2027-01-25 solo ida: sin vuelos
+2026-11-26 15:24:20    · NQN-EZE 2027-01-26 solo ida: sin vuelos
+2026-11-26 15:24:21    · NQN-EZE 2027-01-27 solo ida: sin vuelos
+2026-11-26 15:24:22    ✓ NQN-EZE 2027-01-28 solo ida: USD 52 x persona  (JetSMART)
+2026-11-26 15:24:22    ► Mejor con 2 pasajes: USD 100 x persona — 2027-01-14 a 2027-01-20 (JetSMART)
+2026-11-26 15:24:22    Horarios de vuelta: 11 consultas de solo ida para las mejores opciones
+2026-11-26 15:24:23    · NQN-EZE 2027-01-26 solo ida: sin vuelos
+2026-11-26 15:24:23    · NQN-AEP 2027-01-25 solo ida: sin vuelos
+2026-11-26 15:24:24    · NQN-AEP 2027-01-21 solo ida: sin vuelos
+2026-11-26 15:24:25    · NQN-AEP 2027-01-22 solo ida: sin vuelos
+2026-11-26 15:24:26    · NQN-AEP 2027-01-27 solo ida: sin vuelos
+2026-11-26 15:24:27    ✓ NQN-EZE 2027-01-21 solo ida: USD 52 x persona  (JetSMART)
+2026-11-26 15:24:28    · NQN-AEP 2027-01-28 solo ida: sin vuelos
+2026-11-26 15:24:28    ✓ NQN-EZE 2027-01-22 solo ida: USD 108 x persona  (Aerolíneas Argentinas)
+2026-11-26 15:24:29    ✓ NQN-EZE 2027-01-23 solo ida: USD 58 x persona  (JetSMART)
+2026-11-26 15:24:30    · NQN-AEP 2027-01-24 solo ida: sin vuelos
+2026-11-26 15:24:31    · NQN-EZE 2027-01-27 solo ida: sin vuelos
+2026-11-26 15:24:31    ► Mejor: USD 100 x persona — 2027-01-18 a 2027-01-26
+2026-11-26 15:24:31    ► Mejor cambiando días: USD 100 x persona — 2027-01-15 a 2027-01-20 (5 días)
+2026-11-26 15:24:31  == Japon ==  [proveedor: fast_flights · estrategia: ida_vuelta · equipaje: despachado]
+2026-11-26 15:24:31    Filtros: salidas 2027-04-01 a 2027-04-30 · vuelta hasta 2027-04-30
+2026-11-26 15:24:31    1ra pasada: 3 combinaciones de fechas (~3 consultas)
+2026-11-26 15:24:31    ✓ EZE-NRT 2027-04-01 / 2027-04-15 (14 días): USD 2,542 x persona  (Ethiopian)
+2026-11-26 15:24:32    · EZE-NRT 2027-04-08 / 2027-04-22 (14 días): sin vuelos
+2026-11-26 15:24:33    · EZE-NRT 2027-04-15 / 2027-04-29 (14 días): sin vuelos
+2026-11-26 15:24:33    2da pasada: 6 salidas día por día alrededor de las más baratas
+2026-11-26 15:24:33    ✓ EZE-NRT 2027-04-02 / 2027-04-16 (14 días): USD 3,217 x persona  (Ethiopian)
+2026-11-26 15:24:34    ✓ EZE-NRT 2027-04-03 / 2027-04-17 (14 días): USD 3,246 x persona  (Ethiopian)
+2026-11-26 15:24:35    · EZE-NRT 2027-04-04 / 2027-04-18 (14 días): sin vuelos
+2026-11-26 15:24:35    ✓ EZE-NRT 2027-04-05 / 2027-04-19 (14 días): USD 2,636 x persona  (Emirates)
+2026-11-26 15:24:36    ✓ EZE-NRT 2027-04-06 / 2027-04-20 (14 días): USD 2,636 x persona  (Emirates)
+2026-11-26 15:24:37    · EZE-NRT 2027-04-07 / 2027-04-21 (14 días): sin vuelos
+2026-11-26 15:24:37    Escalas armadas por separado vía YYZ, DXB, SYD para las 1 mejores fechas
+2026-11-26 15:24:38    · EZE-YYZ 2027-04-01 solo ida: sin vuelos
+2026-11-26 15:24:39    · NRT-YYZ 2027-04-15 solo ida: sin vuelos
+2026-11-26 15:24:39    · EZE-DXB 2027-04-01 solo ida: sin vuelos
+2026-11-26 15:24:40    · NRT-DXB 2027-04-15 solo ida: sin vuelos
+2026-11-26 15:24:41    · EZE-SYD 2027-04-01 solo ida: sin vuelos
+2026-11-26 15:24:42    · NRT-SYD 2027-04-15 solo ida: sin vuelos
+2026-11-26 15:24:43    · EZE-NRT 2027-04-01 solo ida: sin vuelos
+2026-11-26 15:24:44    · NRT-EZE 2027-04-15 solo ida: sin vuelos
+2026-11-26 15:24:44    Las escalas armadas no mejoraron el precio en estas fechas.
+2026-11-26 15:24:44    Comparando 5 mejores opciones sin equipaje
+2026-11-26 15:24:45    · EZE-NRT 2027-04-01 / 2027-04-15 (14 días) [sin equipaje]: sin vuelos
+2026-11-26 15:24:46    ✓ EZE-NRT 2027-04-05 / 2027-04-19 (14 días) [sin equipaje]: USD 2,636 x persona  (Emirates)
+2026-11-26 15:24:46    · EZE-NRT 2027-04-06 / 2027-04-20 (14 días) [sin equipaje]: sin vuelos
+2026-11-26 15:24:47    ✓ EZE-NRT 2027-04-02 / 2027-04-16 (14 días) [sin equipaje]: USD 3,217 x persona  (Ethiopian)
+2026-11-26 15:24:48    · EZE-NRT 2027-04-03 / 2027-04-17 (14 días) [sin equipaje]: sin vuelos
+2026-11-26 15:24:48    Horarios de vuelta: 5 consultas de solo ida para las mejores opciones
+2026-11-26 15:24:48    ✓ NRT-EZE 2027-04-15 solo ida: USD 1,144 x persona  (ANA, Ethiopian)
+2026-11-26 15:24:49    · NRT-EZE 2027-04-20 solo ida: sin vuelos
+2026-11-26 15:24:50    · NRT-EZE 2027-04-19 solo ida: sin vuelos
+2026-11-26 15:24:51    · NRT-EZE 2027-04-16 solo ida: sin vuelos
+2026-11-26 15:24:52    · NRT-EZE 2027-04-17 solo ida: sin vuelos
+2026-11-26 15:24:52    ► Mejor: USD 2,542 x persona — 2027-04-01 a 2027-04-15
+2026-11-26 15:24:53  == Confirmando precios en vivo: Cipolletti ==
+2026-11-26 15:33:50    37 links abiertos en 537 s: 46 iguales, 1 con otro precio (corregidos), 0 ya no disponibles, 2 sin poder confirmar
+2026-11-26 15:33:50  == Confirmando precios en vivo: Japon ==
+2026-11-26 15:35:09    7 links abiertos en 79 s: 34 iguales, 0 con otro precio (corregidos), 0 ya no disponibles, 2 sin poder confirmar
+2026-11-26 15:35:09  Reportes: salida/reportes/index.html (+2 individuales)
