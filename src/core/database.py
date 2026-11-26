@@ -17,7 +17,8 @@ from typing import Iterator
 from .paths import DB_PATH
 
 COMPLETA, PARCIAL = 1, 2
-ESQUEMA_VERSION = 6
+ESQUEMA_VERSION = 7
+VIVA = "COALESCE(verificado,0) >= 0"   # filas que siguen disponibles (no descartadas al confirmar en vivo)
 
 
 def _ahora() -> str:
@@ -81,6 +82,22 @@ def _migrar(con: sqlite3.Connection) -> None:
         # Avisos de precio objetivo: cada mail queda asociado al aviso (token de la suscripción)
         if "aviso" not in _columnas(con, "notificaciones"):
             con.execute("ALTER TABLE notificaciones ADD COLUMN aviso TEXT")
+    if version < 7:
+        # Confirmación en vivo (src/core/verificador.py). precios.verificado: NULL sin confirmar,
+        # 1 igual, 2 corregido (precio_google = el que traía la búsqueda), 3 Google da precios distintos en cada
+        # carga (queda el más alto; precio_google = el más bajo visto), 0 no se pudo, -1 ya no está.
+        cols = _columnas(con, "precios")
+        if "verificado" not in cols:
+            con.execute("ALTER TABLE precios ADD COLUMN verificado INT")
+        if "precio_google" not in cols:
+            con.execute("ALTER TABLE precios ADD COLUMN precio_google REAL")
+        if "verificada" not in _columnas(con, "corridas"):
+            con.execute("ALTER TABLE corridas ADD COLUMN verificada INT DEFAULT 0")
+        # Promo de JetSMART de 115 US$ (2 personas) que Google tenía guardada el 26/11/2026 y ya no existía
+        # al abrir el link: se descarta para que no quede como mínimo histórico.
+        con.execute("UPDATE precios SET verificado=-1 WHERE busqueda='Cipolletti' AND precio <= 115.5 "
+                    "AND corrida_id IN (SELECT id FROM corridas WHERE busqueda='Cipolletti' "
+                    "AND inicio BETWEEN '2026-11-26 00:00' AND '2026-11-26 02:00')")
     con.execute(f"PRAGMA user_version = {ESQUEMA_VERSION}")
     con.commit()
 
@@ -223,7 +240,7 @@ def corridas_utiles(con: sqlite3.Connection, busqueda: str) -> list[sqlite3.Row]
 
 def filas_corrida(con: sqlite3.Connection, corrida_id: int) -> list[dict]:
     filas = [dict(r) for r in con.execute(
-        "SELECT * FROM precios WHERE corrida_id=? ORDER BY precio*1.0/pasajeros, "
+        f"SELECT rowid _rid, * FROM precios WHERE corrida_id=? AND {VIVA} ORDER BY precio*1.0/pasajeros, "
         "CASE WHEN COALESCE(tipo, 'ida_vuelta') = 'ida_vuelta' THEN 0 ELSE 1 END, escalas, duracion_min",
         (corrida_id,))]
     for f in filas:
@@ -251,7 +268,7 @@ def evolucion(con: sqlite3.Connection, busqueda: str, filtro=None) -> list[dict]
         por_combo: dict[tuple, float] = {}
         for r in con.execute(
                 "SELECT precio*1.0/pasajeros pp, ida, vuelta, origen, destino, COALESCE(equipaje,0) equipaje "
-                "FROM precios WHERE corrida_id=? AND COALESCE(flexible,0)=0", (c["id"],)):
+                f"FROM precios WHERE corrida_id=? AND COALESCE(flexible,0)=0 AND {VIVA}", (c["id"],)):
             if _en(r, filtro):
                 k = (r["ida"], r["vuelta"], r["origen"], r["destino"], r["equipaje"])
                 por_combo[k] = min(por_combo.get(k, r["pp"]), r["pp"])
@@ -272,7 +289,7 @@ def precios_recientes(con: sqlite3.Connection, busqueda: str, desde: str, filtro
         por_combo: dict[tuple, float] = {}
         for r in con.execute(
                 "SELECT precio*1.0/pasajeros pp, ida, vuelta, origen, destino, COALESCE(equipaje,0) equipaje "
-                "FROM precios WHERE corrida_id=? AND COALESCE(flexible,0)=0", (c["id"],)):
+                f"FROM precios WHERE corrida_id=? AND COALESCE(flexible,0)=0 AND {VIVA}", (c["id"],)):
             if _en(r, filtro):
                 k = (r["ida"], r["vuelta"], r["origen"], r["destino"], r["equipaje"])
                 por_combo[k] = min(por_combo.get(k, r["pp"]), r["pp"])
@@ -288,6 +305,8 @@ def compactar(con: sqlite3.Connection, dias: int = 14) -> int:
     solo usan esa fila, así que no cambia nada visible. Sin esto la base crece ~1,5 MB por día y, si se
     commitea a GitHub, a los ~2 meses pasa el límite de 100 MB por archivo y el push falla."""
     limite = (dt.datetime.now() - dt.timedelta(days=dias)).strftime("%Y-%m-%d %H:%M")
+    con.execute("DELETE FROM precios WHERE verificado = -1 AND corrida_id IN "
+                "(SELECT id FROM corridas WHERE inicio < ? AND fin IS NOT NULL)", (limite,))
     cur = con.execute("""
         DELETE FROM precios WHERE rowid IN (
           SELECT rid FROM (
@@ -315,7 +334,7 @@ def minimo_historico(con: sqlite3.Connection, busqueda: str, antes_de_corrida: i
     """
     sql = ("SELECT precio*1.0/pasajeros precio, escalas, duracion_min, ida, vuelta, consultado, aerolineas, "
            "COALESCE(equipaje,0) equipaje, COALESCE(tipo,'ida_vuelta') tipo "
-           "FROM precios WHERE busqueda=? AND COALESCE(flexible,0)=0")
+           f"FROM precios WHERE busqueda=? AND COALESCE(flexible,0)=0 AND {VIVA}")
     args: list = [busqueda]
     if antes_de_corrida is not None:
         sql += " AND corrida_id < ?"

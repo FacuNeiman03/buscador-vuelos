@@ -66,6 +66,20 @@ def _mejores_de_corrida(con: sqlite3.Connection, corrida_id: int, desde: str | N
     return base
 
 
+def confirmado(con: sqlite3.Connection, corrida_id: int, fila: dict | None) -> bool:
+    """Si la corrida pasó por la confirmación en vivo, solo se avisa con precios confirmados (iguales o
+    corregidos). Sin navegador (ej. corrida local sin Chrome) se avisa como antes."""
+    if not fila:
+        return False
+    r = con.execute("SELECT COALESCE(verificada,0) FROM corridas WHERE id=?", (corrida_id,)).fetchone()
+    if not r or not r[0]:
+        return True
+    if fila.get("verificado") in (1, 2, 3):
+        return True
+    log.info(f"  ✉ No aviso {fila.get('ida')} → {fila.get('vuelta')}: el precio no se pudo confirmar en vivo.")
+    return False
+
+
 def detectar_mejora(con: sqlite3.Connection, busqueda: str, corrida_id: int, desde: str | None = None,
                     hasta: str | None = None, avisar_condiciones: bool = True, filtro=None) -> dict | None:
     """Devuelve la info para el email si hay una mejora real; None si no hay que avisar.
@@ -77,6 +91,8 @@ def detectar_mejora(con: sqlite3.Connection, busqueda: str, corrida_id: int, des
     if not base:
         return None
     hoy = base[0]
+    if not confirmado(con, corrida_id, hoy):
+        return None
     ref = db.minimo_historico(con, busqueda, antes_de_corrida=corrida_id, desde=desde, hasta=hasta, filtro=filtro)
     if ref is None:
         return None   # primera corrida (o primera vez con datos en esa ventana): solo referencia
@@ -479,7 +495,7 @@ def avisos_de_precio(con: sqlite3.Connection, cfg: AppConfig, nombre: str, corri
         av = s.get("aviso") or {}
         mejor = mejor_para_aviso(con, corrida_id, meta, av, s.get("desde"), s.get("hasta"))
         mandar, ultimo = evaluar_aviso(con, s, mejor, hoy.isoformat())
-        if not mandar:
+        if not mandar or not confirmado(con, corrida_id, mejor):
             continue
         ref = db.minimo_historico(con, nombre, antes_de_corrida=corrida_id, filtro=filtro_rango(meta))
         info = {"busqueda": nombre, "corrida_id": corrida_id, "motivo": "objetivo", "hoy": mejor,

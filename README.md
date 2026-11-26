@@ -195,11 +195,26 @@ Campo **Equipaje que llevás** (`equipaje: ninguno | mano | despachado`). Con `m
 
 ### Escalas armadas con pasajes separados
 
-Casilla **Probar escalas armadas** (`escala_separada: true`, `hubs: [MAD, GRU]`, `conexion_min_horas: 4`). Para las `escala_top` (4) mejores fechas prueba llegar a una ciudad de escala con un pasaje y seguir con otro (ej: Buenos Aires → Madrid + Madrid → Tokio, y lo mismo a la vuelta). Solo acepta conexiones de al menos `conexion_min_horas` y como máximo 24 h, y solo guarda la opción si es más barata que lo que ya había. Si no elegís ciudades, sugiere según el continente del destino (Europa: MAD, BCN, LIS, GRU · Asia: MAD, IST, DXB, GRU · etc.).
+Casilla **Probar escalas armadas** (`escala_separada: true`, `hubs: [MAD, GRU]`, `conexion_min_horas: 4`). Para las `escala_top` (4) mejores fechas prueba llegar a una ciudad de escala con un pasaje y seguir con otro (ej: Buenos Aires → Madrid + Madrid → Tokio, y lo mismo a la vuelta). Solo acepta conexiones de al menos `conexion_min_horas` y como máximo 24 h. Guarda la mejor opción de cada ciudad de escala (aunque no sea la más barata) para comparar rutas. Si no elegís ciudades, sugiere según el continente del destino (Europa: MAD, BCN, LIS, GRU · Asia: MAD, IST, DXB, DOH, YYZ, LAX, SYD, GRU · etc.).
 
 > ⚠️ Con pasajes separados, si el primer vuelo se atrasa la aerolínea del segundo no te espera ni te reubica; en la escala pasás migraciones y volvés a despachar la valija, así que necesitás poder entrar a ese país (visa). El reporte y el email marcan estas opciones con 🔀 y muestran el aviso. No se aplica si pediste "Solo directos".
 
+### Rutas: por dónde conviene ir
+
+En búsquedas con escalas, cada consulta guarda además de las 3 más baratas la mejor opción de cada ruta distinta que ofrece Google (`rutas_por_consulta`, 8 por defecto), sin consultas extra. El reporte muestra la tarjeta **Por dónde conviene ir**: el mejor precio vía Canadá, vía Turquía, vía Dubái, vía Europa, etc. en todas las fechas buscadas (la escala de paso en Sudamérica, como San Pablo, no cuenta como ruta). Con escalas armadas también aparecen las rutas con pasajes separados por cada ciudad de `hubs`.
+
 En el reporte, cada opción armada con varios pasajes muestra una etiqueta (🎫 2 pasajes / 🔀 escala MAD), un link para cada pasaje y la tarjeta **Cómo conviene comprar** compara el mejor precio de cada forma.
+
+### Precios confirmados en vivo
+
+La búsqueda masiva lee la respuesta rápida de Google, que a veces trae tarifas guardadas que ya no existen (ej: 115 US$ en la búsqueda y 313 al abrir el link). Por eso, al terminar cada búsqueda en GitHub se abren los links más baratos en un Chrome real (sin ventana), como lo hacés vos, y se toma el precio que muestra Google en ese momento:
+
+- Se confirman las 10 mejores fechas y las 5 mejores "cambiando días" de cada equipaje, más lo que dispararía cada mail (el mejor del rango de cada suscripción y de cada aviso de precio). Si una promo se cayó, se confirma la siguiente, hasta que lo más barato esté confirmado (máximo 80 links, ~2 a 5 minutos más).
+- Si el precio cambió, se corrige. Si el vuelo ya no aparece, se descarta (no se muestra ni cuenta para el mínimo histórico).
+- Cada link se abre dos veces: si Google contesta distinto (pasa, un servidor puede seguir teniendo la promo agotada), se toma el precio más alto.
+- Los mails solo salen con precios confirmados. En el reporte, ✓ = confirmado en vivo (pasá el mouse para ver el detalle) y ? = no se pudo confirmar.
+
+En la PC funciona si instalás `pip install playwright` y tenés Google Chrome; si no, la búsqueda sigue como antes, sin confirmar. Se apaga con `general.verificar.activo: false`.
 
 ## 5. Reportes
 

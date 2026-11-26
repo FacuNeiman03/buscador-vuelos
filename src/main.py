@@ -199,6 +199,14 @@ def ejecutar(config: str | None = None, busqueda: str | None = None, forzar: boo
                     if any(ok) and not busqueda:   # si todo falló (bloqueo/red) reintenta en el próximo arranque
                         ESTADO_PATH.write_text(json.dumps({"ultima_corrida": hoy}), encoding="utf-8")
 
+        if resumen["corrio"] and resumen["corridas"]:
+            if progreso:
+                progreso("Confirmando precios en Google Flights…")
+            try:
+                from src.core.verificador import verificar
+                verificar(con, cfg, resumen["corridas"])
+            except Exception as e:   # si falla la confirmación, quedan los precios de la búsqueda (sin mails)
+                log.exception(f"Error confirmando precios en vivo: {e}")
         if resumen["corrio"]:
             try:
                 n = db.compactar(con)

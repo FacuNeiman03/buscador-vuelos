@@ -118,7 +118,8 @@ jobs:
           python-version: "3.12"
 
       - name: Instalar dependencias
-        run: pip install -r requirements.txt
+        # playwright: abre los precios más baratos en el Chrome que trae el runner para confirmarlos en vivo
+        run: pip install -r requirements.txt playwright==1.49.1
 
       - name: Buscar precios, generar reportes y enviar alertas
         env:

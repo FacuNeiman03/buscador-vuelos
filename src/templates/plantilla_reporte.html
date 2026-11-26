@@ -329,6 +329,17 @@ button,input,select{font:inherit;color:inherit}
 .tag2 .i{width:13px;height:13px}
 .tag2.dos_solo_ida{background:var(--info-bg);color:var(--info)}
 .tag2.escala_separada{background:var(--warn-bg);color:var(--warn)}
+.conf{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;font-size:10px;font-weight:700;vertical-align:middle;margin-left:4px;cursor:help;background:var(--good-bg);color:var(--good)}
+.conf.no{background:var(--surface-3);color:var(--text-3)}
+.conf-txt{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--good);font-weight:600}
+.conf-txt.no{color:var(--text-3)}
+.rutas{display:grid;gap:8px}
+.ruta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 16px;align-items:center;padding:10px 12px;border:1px solid var(--border);border-radius:var(--r-md)}
+.ruta.win{border-color:var(--good);background:var(--good-bg)}
+.ruta .via{font-weight:600}
+.ruta .via small{display:block;font-weight:400;color:var(--text-3);font-size:12px;margin-top:2px}
+.ruta .pr{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.ruta .pr small{display:block;font-weight:400;color:var(--text-3);font-size:12px}
 .pill{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:2px 8px;border-radius:var(--r-pill);background:var(--good-bg);color:var(--good);white-space:nowrap;vertical-align:middle}
 .pill .i{width:13px;height:13px}
 
@@ -812,6 +823,14 @@ function delta(act, prev, cur){
 }
 
 const TIPOS = {ida_vuelta:"Ida y vuelta", dos_solo_ida:"2 pasajes", escala_separada:"Escala armada"};
+/* Precio confirmado en vivo (abriendo el link como una persona) */
+function conf(c, cur){
+  if(c.verificado===1) return `<span class="conf" title="Precio confirmado abriendo el link en Google Flights al terminar la búsqueda">✓</span>`;
+  if(c.verificado===2) return `<span class="conf" title="Confirmado en vivo: la búsqueda rápida de Google decía ${esc(money(c.precio_google,cur))}, pero al abrir el link el precio real es este">✓</span>`;
+  if(c.verificado===3) return `<span class="conf" title="Confirmado en vivo, pero Google no siempre muestra lo mismo: a veces aparece a ${esc(money(c.precio_google,cur))}. Se toma el precio más alto que se vio; si al abrirlo ves el más bajo, aprovechalo">✓</span>`;
+  if(c.verificado===0) return `<span class="conf no" title="No se pudo confirmar en vivo: puede no ser el precio real (no dispara mails)">?</span>`;
+  return "";
+}
 const TIPO_IC = {ida_vuelta:"plane", dos_solo_ida:"ticket", escala_separada:"split"};
 function hubDe(c){ const t = (c.detalle && c.detalle.tramos) || []; const h = t.filter(x => x.sentido==="ida").slice(0,-1).map(x => x.destino); return h.length ? h.join("/") : ""; }
 function etiquetaTipo(c){
@@ -848,7 +867,7 @@ function tabla(lista, b, conMes){
     b.multi_destino && {h:"Destino", tipo:"text", full:true, cell:c => ({html:esc(c.destino_txt||c.destino)})},
     {h:eq?"Precio x persona (con equipaje)":"Precio x persona", lbl:"Precio x persona", tipo:"num", num:true, price:true, cell:c => {
       const ok = b.alerta && c.precio<=b.alerta;
-      return {html:`<b>${money(c.precio,b.moneda)}</b>${ok?` <span class="pill">alerta</span>`:""}${c.tipo&&c.tipo!=="ida_vuelta"?" "+etiquetaTipo(c):""}`, v:c.precio};
+      return {html:`<b>${money(c.precio,b.moneda)}</b>${conf(c,b.moneda)}${ok?` <span class="pill">alerta</span>`:""}${c.tipo&&c.tipo!=="ida_vuelta"?" "+etiquetaTipo(c):""}`, v:c.precio};
     }},
     eq && {h:"Sin equipaje", tipo:"num", num:true, cell:c => ({html:c.sin_equipaje!=null?`${money(c.sin_equipaje,b.moneda)} <span class="sub">(+${money(c.precio-c.sin_equipaje,b.moneda)})</span>`:'<span class="muted">—</span>', v:c.sin_equipaje??""})},
     {h:"vs anterior", tipo:"num", num:true, cell:c => ({html:delta(c.precio,c.previo,b.moneda), v:c.previo!=null?c.precio-c.previo:""})},
@@ -869,7 +888,7 @@ function tablaOfertas(lista, b){
     {h:"Días", tipo:"num", num:true, cell:o => ({html:`<b>${o.dias}</b>`, v:o.dias})},
     {h:"Sale ida", tipo:"text", cell:o => ({html:horaIda(o), v:o.ida_hora||""})},
     {h:"Sale vuelta", tipo:"text", cell:o => ({html:horaVta(o), v:o.vta_hora||""})},
-    {h:"Precio x persona", tipo:"num", num:true, price:true, cell:o => ({html:`<b>${money(o.precio,b.moneda)}</b>`, v:o.precio})},
+    {h:"Precio x persona", tipo:"num", num:true, price:true, cell:o => ({html:`<b>${money(o.precio,b.moneda)}</b>${conf(o,b.moneda)}`, v:o.precio})},
     {h:"Ahorro", tipo:"num", num:true, cell:o => ({html:`<span class="down">▼ ${money(o.ahorro,b.moneda)} (${o.ahorro_pct}%)</span>`, v:o.ahorro})},
     {h:"Comparado con", full:true, cell:o => ({html:`<span class="sub" title="${esc(`${o.ref_dias??"?"} días: ${fd(o.ref_ida)} → ${fd(o.ref_vuelta)}`)}">${money(o.ref_precio,b.moneda)} · ${o.ref_dias??"?"} días${o.ref_mismo_dia?"":" (sale "+fd(o.ref_ida)+")"}</span>`})},
     {h:"Aerolíneas", tipo:"text", cell:o => ({html:esc(o.aerolineas)})},
@@ -893,6 +912,20 @@ function tablaExploracion(b){
   return `<section class="card" aria-labelledby="hExp"><div class="card-h"><div><h3 id="hExp">Exploración de destinos</h3>
     <p class="hint">Pasada rápida con fechas de muestra por ${n} aeropuertos con vuelos. Los ${elegidos} más baratos (✓) se buscaron en detalle con todas las fechas del rango.</p></div></div>
     ${tablaHTML(cols, b.exploracion)}</section>`;
+}
+
+/* Por dónde conviene ir: mejor precio según los países de escala */
+function rutasCard(b){
+  const r = b.rutas || []; if(r.length < 2) return "";
+  const min = r[0].precio;
+  return `<section class="card" aria-labelledby="hRutas"><div class="card-h"><div><h3 id="hRutas">Por dónde conviene ir</h3>
+    <p class="hint">Mejor precio por persona según por dónde pasa el viaje, en todas las fechas buscadas. Cada consulta guarda la opción más barata de cada ruta que ofrece Google${b.escala_separada?", y además se arman escalas con pasajes separados vía otras ciudades":""}.</p></div></div>
+    <div class="rutas">${r.map(x => `<div class="ruta ${x.precio===min?"win":""}">
+      <div class="via">${x.via.length?"Vía "+esc(x.via.join(" y ")):"Sin escalas en otros países"}${x.separados?` <span class="tag2 escala_separada">${ico("split")}pasajes separados</span>`:""}
+        <small>${x.ciudades.length?esc(x.ciudades.join(", "))+" · ":""}${esc(x.aerolineas)} · ${escalasTxt(x.escalas)} · ${esc(x.duracion_txt||"")} · ${fd(x.ida)}${x.vuelta?" → "+fd(x.vuelta):""}</small></div>
+      <div class="pr">${money(x.precio,b.moneda)}${conf(x,b.moneda)}<small>${x.precio===min?"la más barata":"+"+money(x.precio-min,b.moneda)}</small>
+        ${x.detalle&&x.detalle.tramos?linksTramos(x,b.pasajeros,b.moneda):verLink(x.link)}</div></div>`).join("")}</div>
+  </section>`;
 }
 
 /* Cómo conviene comprar */
@@ -955,6 +988,9 @@ function mejorCard(b){
         <span class="car-count" aria-live="polite"><b>1</b> de ${n}${mas}</span>
         <button type="button" data-car="next" aria-label="Opción siguiente">${ico("next")}</button></div>`:""}</div>
     <div class="best-price"><span class="v">${money(s.minimo,cur)}</span><span class="per">por persona${b.ida_vuelta?" · ida y vuelta":" · solo ida"}${n>1?` · <b style="color:var(--text);font-weight:600">${n}${mas} fechas a este precio</b>`:""}</span></div>
+    ${b.verificada?([1,2,3].includes(b.mejor.verificado)
+      ? `<div class="conf-txt" title="Al terminar la búsqueda se abrió el link en Google Flights, como lo ves vos, y el precio coincide${b.mejor.verificado===2?". La búsqueda rápida decía "+esc(money(b.mejor.precio_google,cur))+" (tarifa vieja de Google)":""}${b.mejor.verificado===3?". Google a veces lo muestra a "+esc(money(b.mejor.precio_google,cur))+": se toma el precio más alto":""}">${ico("check")}Precio confirmado en vivo · ${esc((b.actualizado||"").slice(11))}</div>`
+      : `<div class="conf-txt no">No se pudo confirmar en vivo: puede haber cambiado</div>`):""}
     <div class="car ${n>1?"multi":""}">
       <div class="car-track" ${n>1?`tabindex="0" role="region" aria-roledescription="carrusel" aria-label="Fechas al precio mínimo. Usá las flechas del teclado para recorrerlas."`:""}>${ops.map((m,i) => slideOpcion(m, b, i, n)).join("")}</div>
       ${n>1?`<div class="car-foot ${n>9?"many":""}">
@@ -1191,6 +1227,7 @@ function render(i){
   <section class="hero" aria-label="Indicadores">${mejorCard(b)}${kpis(b)}</section>
   ${nivelCard(b)}
   ${estrategiasCard(b)}
+  ${rutasCard(b)}
   ${b.exploracion && b.exploracion.length ? tablaExploracion(b) : ""}
   <section class="card" aria-labelledby="hDia"><div class="card-h"><div><h3 id="hDia">Precio más barato según fecha de salida</h3>
     <p class="hint">Cada punto es la opción más barata saliendo ese día${durTxt?" ("+durTxt+")":""}.${b.alerta?" La línea punteada es tu precio de alerta ("+money(b.alerta,b.moneda)+").":""} Pasá el mouse o tocá un punto para ver el detalle.</p></div>

@@ -42,6 +42,8 @@ def _normalizar(filas: list[dict]) -> list[dict]:
     for f in filas:
         f["total"] = f["precio"]
         f["precio"] = f["precio"] / (f["pasajeros"] or 1)
+        if f.get("precio_google"):
+            f["precio_google"] = f["precio_google"] / (f["pasajeros"] or 1)
         f["dias"] = _dias(f["ida"], f["vuelta"])
         f["duracion_txt"] = fmt_min(f["duracion_min"])
         f["flexible"] = f.get("flexible") or 0
@@ -108,6 +110,40 @@ def mejores_por_combo(filas: list[dict]) -> tuple[list[dict], list[dict]]:
     base = sorted((c for c in por_combo.values() if not c["flexible"]), key=clave)
     flex = sorted((c for c in por_combo.values() if c["flexible"]), key=clave)
     return base, flex
+
+
+def rutas_por_pais(filas: list[dict], n: int = 12) -> list[dict]:
+    """La opción más barata según por dónde pasa el viaje (Canadá, Dubái, Europa...), para comparar rutas.
+    Solo tiene sentido con escalas: si todas son directas o pasan por los mismos países, devuelve []."""
+    from src.core.flight_searcher import escalas_de, via_de
+    mejores: dict = {}
+    for f in filas:
+        if f["flexible"]:
+            continue
+        excluir = {(aeropuertos.info(x) or {}).get("pais") for x in (f["origen"], f["destino"])}
+        via = via_de(f["ruta"], excluir)
+        # la escala "de paso" en el mismo continente de salida (ej. San Pablo) no define la ruta:
+        # EZE → GRU → YYZ → PVG es "vía Canadá"
+        lejos = tuple(x for x in via if aeropuertos.continente(x) != aeropuertos.continente(
+            (aeropuertos.info(f["origen"]) or {}).get("pais", "")))
+        via = lejos or via
+        sep = f["tipo"] == "escala_separada"
+        k = (via, sep)
+        if k not in mejores or f["precio"] < mejores[k]["precio"]:
+            mejores[k] = f
+    if len(mejores) < 2:
+        return []
+    out = []
+    for (via, sep), f in sorted(mejores.items(), key=lambda kv: kv[1]["precio"]):
+        hubs = [a for a in escalas_de(f["ruta"]) if (aeropuertos.info(a) or {}).get("pais") in via]
+        out.append({"via": [aeropuertos.nombre_pais(p) for p in via],
+                    "ciudades": list(dict.fromkeys(aeropuertos.ciudad(a) for a in hubs)),
+                    "separados": sep, "precio": f["precio"], "ida": f["ida"], "vuelta": f["vuelta"],
+                    "aerolineas": f["aerolineas"], "ruta": f["ruta"], "escalas": f["escalas"],
+                    "duracion_txt": f["duracion_txt"], "duracion_min": f["duracion_min"], "link": f["link"],
+                    "tipo": f["tipo"], "detalle": f.get("detalle"), "verificado": f.get("verificado"),
+                    "precio_google": f.get("precio_google"), "pasajeros": f["pasajeros"]})
+    return out[:n]
 
 
 def estadisticas(precios: list[float]) -> dict:
@@ -217,6 +253,8 @@ def datos_busqueda(con: sqlite3.Connection, nombre: str, meta: dict | None) -> d
             bt, _ = mejores_por_combo([f for f in filas if f["tipo"] == t])
             tops_tipo[t] = bt[:30]
 
+    rutas = rutas_por_pais(filas)
+
     stats = estadisticas([c["precio"] for c in base])
     hist = db.minimo_historico(con, nombre, filtro=filtro)
     hist_prev = db.minimo_historico(con, nombre, antes_de_corrida=ult["id"], filtro=filtro)
@@ -311,4 +349,6 @@ def datos_busqueda(con: sqlite3.Connection, nombre: str, meta: dict | None) -> d
         "estrategia": b.get("estrategia", "ida_vuelta"),
         "equipaje": b.get("equipaje", "ninguno"),
         "escala_separada": bool(b.get("escala_separada")),
+        "rutas": rutas,
+        "verificada": bool(ult["verificada"]) if "verificada" in ult.keys() else False,
     }

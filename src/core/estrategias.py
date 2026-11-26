@@ -28,7 +28,8 @@ from .config import lista_duraciones
 # Hubs sugeridos por continente del destino (desde Argentina). Se pueden cambiar por búsqueda.
 HUBS_POR_CONTINENTE = {
     "EU": ["MAD", "BCN", "LIS", "GRU"],
-    "AS": ["MAD", "IST", "DXB", "GRU"],
+    # Asia: por Europa, Turquía, Medio Oriente, Canadá, EE.UU., Oceanía y Brasil (las rutas típicas desde Argentina)
+    "AS": ["MAD", "IST", "DXB", "DOH", "YYZ", "LAX", "SYD", "GRU"],
     "AF": ["MAD", "IST", "GRU"],
     "OC": ["SCL", "AKL", "GRU"],
     "NA": ["PTY", "BOG", "LIM", "GRU"],

@@ -24,7 +24,7 @@ import urllib.request
 from typing import Callable, Iterable
 
 from . import database as db
-from . import estrategias
+from . import aeropuertos, estrategias
 from .ritmo import Ritmo
 from .config import lista_duraciones
 
@@ -252,6 +252,42 @@ def _opcion(precio: float, aerolineas: str, segs: list[dict]) -> dict:
     }
 
 
+def escalas_de(ruta: str | None) -> list[str]:
+    """Aeropuertos intermedios de una ruta "EZE → GRU → YYZ → PVG" -> [GRU, YYZ]."""
+    partes = [x.strip() for x in (ruta or "").replace("⇢", "→").split("→") if x.strip()]
+    return partes[1:-1]
+
+
+def via_de(ruta: str | None, excluir: set[str] | frozenset = frozenset()) -> tuple[str, ...]:
+    """Países por los que pasa una ruta (sin los de origen y destino), en orden: identifica "la ruta"
+    (por Canadá, por Dubái, por Europa...). () = directo o escalas solo en el país de origen/destino."""
+    paises: list[str] = []
+    for a in escalas_de(ruta):
+        i = aeropuertos.info(a)
+        pais = i["pais"] if i else a
+        if pais not in excluir and pais not in paises:
+            paises.append(pais)
+    return tuple(paises)
+
+
+def seleccionar(ops: list[dict], n: int = 3, por_via: int = 8) -> list[dict]:
+    """Las n más baratas + la más barata de cada ruta distinta (por qué países pasa), hasta `por_via` extra.
+    Google devuelve muchas opciones por consulta: así no se pierde, por ejemplo, el precio yendo por Canadá
+    cuando lo más barato es por Europa, sin gastar consultas de más."""
+    out = list(ops[:n])
+    if por_via <= 0:
+        return out
+    vistas = {via_de(o["ruta"]) for o in out}
+    for o in ops[n:]:
+        v = via_de(o["ruta"])
+        if v and v not in vistas:
+            vistas.add(v)
+            out.append(o)
+            if len(out) >= n + por_via:
+                break
+    return out
+
+
 def _dedup_ordenar(opciones: list[dict]) -> list[dict]:
     vistos, out = set(), []
     for op in opciones:
@@ -274,8 +310,11 @@ def parsear_html_google(html_txt: str, info: dict | None = None) -> list[dict]:
     data = script.text().split("data:", 1)[1].rsplit(",", 1)[0]
     if data.endswith("errorHasStatus: true"):
         return []
-    payload = json.loads(data)
+    return opciones_de_payload(json.loads(data), info)
 
+
+def opciones_de_payload(payload, info: dict | None = None) -> list[dict]:
+    """Opciones de la estructura de resultados de Google (la misma en el HTML y en la respuesta en vivo)."""
     crudos = []
     for idx in (2, 3):  # 2 = "mejores vuelos", 3 = "otros vuelos"
         try:
@@ -782,6 +821,10 @@ class Corrida:
         if k not in self.mejores or p < self.mejores[k][0]:
             self.mejores[k] = (p, es_base, ops[0], origen)
 
+    def _seleccion(self, ops: list[dict]) -> list[dict]:
+        """Qué opciones de una consulta se guardan: con escalas, también la mejor de cada ruta."""
+        return seleccionar(ops, 3, 0 if self.b.get("max_escalas") == 0 else int(self.b.get("rutas_por_consulta", 8)))
+
     def top(self, n: int, solo_base: bool = True) -> list[tuple]:
         filas = [(k, v) for k, v in self.mejores.items() if v[1] or not solo_base]
         filas.sort(key=lambda kv: kv[1][0])
@@ -797,7 +840,7 @@ class Corrida:
             self.ya.add((ida, vta))
             r = res.get(t)
             if r:
-                self.guardar(o, d, ida, vta, r[0][:3], r[1], self.reglas.es_base(ida, vta))
+                self.guardar(o, d, ida, vta, self._seleccion(r[0]), r[1], self.reglas.es_base(ida, vta))
         self.seguir()
 
     def pasadas_ida_vuelta(self, iniciales: list[Combo]) -> None:
@@ -894,7 +937,7 @@ class Corrida:
         for t in tareas:
             o, d, i, v, _ = t
             if res.get(t):
-                self.guardar(o, d, i, v, res[t][0][:3], res[t][1], self.reglas.es_base(i, v))
+                self.guardar(o, d, i, v, self._seleccion(res[t][0]), res[t][1], self.reglas.es_base(i, v))
         self.seguir()
 
     # ------------------------------------------------------------------ escala armada por separado
@@ -956,6 +999,7 @@ class Corrida:
             opciones_ida = [list(p) for p in ida_st] + [ida_dir] * bool(ida_dir)
             opciones_vta = [list(p) for p in vta_st] + [vta_dir] * bool(vta_dir)
             mejor = None
+            por_via: dict = {}   # la mejor por ruta (vía qué países), aunque no mejore: para comparar rutas
             for ti in opciones_ida:
                 for tv in opciones_vta:
                     if len(ti) == 1 and len(tv) == 1:
@@ -963,11 +1007,17 @@ class Corrida:
                     op = estrategias.opcion_compuesta("escala_separada", ti, tv)
                     if mejor is None or op["precio"] < mejor["precio"]:
                         mejor = op
+                    k = via_de(op["ruta"])
+                    if k not in por_via or op["precio"] < por_via[k]["precio"]:
+                        por_via[k] = op
             if mejor and mejor["precio"] < precio_actual - 0.5:
                 mejoras += 1
-                self.guardar(mejor["detalle"]["tramos"][0]["origen"], d, i, v, [mejor], mejor["link"], es_base)
                 log.info(f"  ► Escala armada más barata {i} a {v}: {self.moneda} {mejor['precio'] / self.pax:,.0f} "
                          f"x persona (antes {precio_actual / self.pax:,.0f}) — {mejor['ruta']}")
+            for op in sorted(por_via.values(), key=lambda o: o["precio"]):
+                self.guardar(op["detalle"]["tramos"][0]["origen"], d, i, v, [op], op["link"], es_base,
+                             commit=False)
+            self.con.commit()
         if not mejoras:
             log.info("  Las escalas armadas no mejoraron el precio en estas fechas.")
 

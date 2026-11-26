@@ -66,6 +66,11 @@ busquedas:
     destinos: [PEK, PKX, PVG, SHA, CAN, SZX, CTU, TFU, CKG, KMG, XIY, HGH, WUH, NKG, CSX]
     destino_pais: CN
     explorar_top: 3
+    # Además de todas las rutas que ofrece Google (se guarda la mejor de cada una: vía Canadá, Turquía,
+    # Dubái...), arma escalas con pasajes separados por estas ciudades en las mejores fechas
+    escala_separada: true
+    hubs: [YYZ, SYD, DXB, DOH, MAD, IST, LAX]
+    escala_top: 4
     tipo: ida_vuelta
     pasajeros: 2
     clase: economy
