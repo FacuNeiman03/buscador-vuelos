@@ -34,9 +34,14 @@ from .flight_searcher import opciones_de_payload, seleccionar
 
 log = logging.getLogger("vuelos")
 
-INTENTOS = 8            # Google rechaza ~la mitad de las cargas de un navegador automatizado: se reintenta
+INTENTOS = 12           # Google rechaza ~la mitad de las cargas de un navegador automatizado: se reintenta
 TOPE_LINKS = 80         # links como máximo por corrida (cada uno tarda ~1-5 s)
 TOP_BASE, TOP_FLEX = 10, 5
+
+
+def igual(a: float, b: float) -> bool:
+    """Google redondea distinto según la respuesta (4476 vs 4477): hasta US$ 2 o 0,1 % es el mismo precio."""
+    return abs(a - b) <= max(2.0, 0.001 * max(a, b))
 
 
 class SinNavegador(Exception):
@@ -84,7 +89,7 @@ class Navegador:
         ctx.add_init_script("Object.defineProperty(navigator,'webdriver',{get:()=>undefined})")
         try:
             pg = ctx.new_page()
-            with pg.expect_response(lambda r: "GetShoppingResults" in r.url, timeout=25000) as ri:
+            with pg.expect_response(lambda r: "GetShoppingResults" in r.url, timeout=12000) as ri:
                 pg.goto(link, wait_until="commit", timeout=30000)
             return leer_respuesta(ri.value.text())
         except Exception:
@@ -147,7 +152,7 @@ def combinar(cargas: list[list[dict]]) -> list[dict]:
                 continue
             vistos.add(k)
             o = {**o, "precio": max(precios)}
-            if min(precios) < o["precio"] - 0.5:
+            if not igual(min(precios), o["precio"]):
                 o["min_visto"] = min(precios)
             out.append(o)
     out.sort(key=lambda o: (o["precio"], o["escalas"], o["duracion_min"] or 10**6))
@@ -260,7 +265,7 @@ class Verificador:
         det = {**f["detalle"], "tramos": tramos}
         self.con.execute("UPDATE precios SET detalle=? WHERE rowid=?",
                          (json.dumps(det, ensure_ascii=False), f["_rid"]))
-        self._precio(f, total, minimo if minimo < total - 0.5 else None)
+        self._precio(f, total, None if igual(minimo, total) else minimo)
         self.con.commit()
 
     def _precio(self, f: dict, vivo: float, min_visto: float | None = None) -> None:
@@ -269,11 +274,11 @@ class Verificador:
             # precio_google el más bajo que se vio
             self.con.execute("UPDATE precios SET precio=?, verificado=3, precio_google=? WHERE rowid=?",
                              (vivo, min_visto, f["_rid"]))
-            self.corregidas += abs(vivo - f["precio"]) >= 0.5
-            self.ok += abs(vivo - f["precio"]) < 0.5
+            self.corregidas += not igual(vivo, f["precio"])
+            self.ok += igual(vivo, f["precio"])
             return
-        if abs(vivo - f["precio"]) < 0.5:
-            self._marcar(f["_rid"], 1)
+        if igual(vivo, f["precio"]):
+            self.con.execute("UPDATE precios SET precio=?, verificado=1 WHERE rowid=?", (vivo, f["_rid"]))
             self.ok += 1
         else:
             self.con.execute("UPDATE precios SET precio=?, verificado=2, precio_google=? WHERE rowid=?",
@@ -290,10 +295,19 @@ class Verificador:
         for _ in range(40):
             pendientes = [f for f in elegir() if f.get("verificado") is None]
             if not pendientes or self.links >= self.tope:
-                return
+                break
             for f in pendientes:
                 if self.links >= self.tope:
-                    return
+                    break
+                self.confirmar(f)
+        # segunda oportunidad para las que Google no dejó confirmar (suele ser algo pasajero)
+        for f in elegir():
+            if f.get("verificado") == 0 and self.links < self.tope:
+                link = f["link"]
+                for t in (f.get("detalle") or {}).get("tramos", []):
+                    self.nav.cache.pop(t.get("link"), None)
+                self.nav.cache.pop(link, None)
+                self._marcar(f["_rid"], None)
                 self.confirmar(f)
 
 
@@ -316,10 +330,11 @@ def verificar_corrida(con, cfg, nombre: str, corrida_id: int, nav: Navegador) ->
     """Confirma lo que se va a mostrar y avisar de una corrida. Devuelve un resumen para el log."""
     from src.core import suscriptores as subs
     from src.notifications.mailer import mejor_para_aviso, _mejores_de_corrida
-    from src.reporting.metrics import filtro_rango
+    from src.reporting.metrics import filtro_rango, reglas_de
 
     meta = cfg.buscar(nombre)
     filtro = filtro_rango(meta) if meta else None
+    reglas = reglas_de(meta) if meta else None   # solo fechas: se confirman TODOS los equipajes
     v = Verificador(con, corrida_id, nav, int((cfg.general.get("verificar") or {}).get("max_links", TOPE_LINKS)))
     # desde acá, los mails de esta corrida solo salen con precios confirmados (aunque algo falle en el medio)
     con.execute("UPDATE corridas SET verificada=1 WHERE id=?", (corrida_id,))
@@ -328,7 +343,7 @@ def verificar_corrida(con, cfg, nombre: str, corrida_id: int, nav: Navegador) ->
         "SELECT DISTINCT COALESCE(equipaje,0) FROM precios WHERE corrida_id=?", (corrida_id,))]
 
     def filas():
-        return [f for f in db.filas_corrida(con, corrida_id) if not filtro or filtro(f)]
+        return [f for f in db.filas_corrida(con, corrida_id) if not reglas or reglas.valida_iso(f["ida"], f["vuelta"])]
 
     # 1) lo más barato de cada equipaje (lo que muestran los KPIs y las tablas)
     for nv in niveles:
