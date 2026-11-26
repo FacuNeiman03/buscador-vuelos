@@ -1,0 +1,42 @@
+general:
+  moneda: USD
+  idioma: es
+  pais: AR
+  abrir_reporte: nunca
+  una_vez_por_dia: false
+  velocidad: normal
+  max_consultas_por_corrida: 400
+  proveedor: fast_flights
+  alertas: {activas: false, emails: []}
+busquedas:
+  - nombre: Cipolletti
+    origenes: [AEP, EZE]
+    destinos: [NQN]
+    tipo: ida_vuelta
+    estrategia: ambas
+    pasajeros: 2
+    max_escalas: 0
+    max_duracion_horas: 8
+    viajar_desde: "2027-01-14"
+    viajar_hasta: "2027-01-28"
+    duracion_dias: {min: 6, max: 8}
+    paso_dias: 2
+    refinar_top: 2
+    tolerancia_dias: 1
+    equipaje: [ninguno, mano]
+  - nombre: Japon
+    origenes: [EZE]
+    destinos: [NRT]
+    tipo: ida_vuelta
+    estrategia: ida_vuelta
+    pasajeros: 2
+    viajar_desde: "2027-04-01"
+    viajar_hasta: "2027-04-30"
+    duracion_dias: [14]
+    paso_dias: 7
+    refinar_top: 1
+    tolerancia_dias: 0
+    equipaje: despachado
+    escala_separada: true
+    hubs: [YYZ, DXB, SYD]
+    escala_top: 1
