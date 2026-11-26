@@ -12,7 +12,7 @@ jobs:
       - uses: actions/setup-python@v5
         with: {python-version: '3.12'}
       - run: pip install playwright==1.49.1 && python -m playwright install --with-deps chromium
-      - run: rm -rf salida; python probe.py chromium_ua chrome_headless; xvfb-run -a python probe.py chrome_headed chrome_headed_mismo_ctx; which google-chrome; google-chrome --version
+      - run: rm -rf salida; python probe.py
       - run: |
           git config user.name bot; git config user.email bot@x
           git add -A salida; git commit -m "salida [skip ci]" -q; git push -q
