@@ -137,11 +137,14 @@ def sha_datos() -> str | None:
     return j["commit"]["sha"] if st == 200 and isinstance(j, dict) else None
 
 
-def bajar_datos(destino_data: Path) -> bool:
-    """Baja historial.db y estado.json de la rama de datos (tarball) y los deja en destino_data."""
+def bajar_datos(destino_data: Path, sha: str | None = None) -> bool:
+    """Baja historial.db y estado.json de la rama de datos (tarball) y los deja en destino_data.
+
+    Con `sha` pide ese commit exacto: el tarball por nombre de rama puede venir cacheado y traer la
+    versión anterior justo después de que termina una búsqueda."""
     import io
     import tarfile
-    url = f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/tarball/{RAMA_DATOS}"
+    url = f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/tarball/{sha or RAMA_DATOS}"
     try:
         with urllib.request.urlopen(urllib.request.Request(url, headers=_headers()), timeout=60) as r:
             blob = r.read()
@@ -151,7 +154,11 @@ def bajar_datos(destino_data: Path) -> bool:
     destino_data.mkdir(parents=True, exist_ok=True)
     bajados = 0
     with tarfile.open(fileobj=io.BytesIO(blob), mode="r:gz") as tar:
-        for m in tar.getmembers():
+        miembros = tar.getmembers()
+        if sha and miembros and not miembros[0].name.split("/", 1)[0].endswith(sha[:7]):
+            log.info(f"GitHub: el tarball no es del commit {sha[:7]} ({miembros[0].name}); reintento después")
+            return False
+        for m in miembros:
             partes = m.name.split("/", 1)          # "<usuario>-<repo>-<sha>/data/historial.db"
             if len(partes) == 2 and m.isfile() and partes[1] in ("data/historial.db", "data/estado.json"):
                 final = destino_data / Path(partes[1]).name

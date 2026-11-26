@@ -97,7 +97,7 @@ def test_modo_nube_dispara_y_baja(monkeypatch):
     monkeypatch.setattr(gh, "disparar_busqueda", lambda b: disparos.append(b) or (True, ""))
     monkeypatch.setattr(gh, "bajar_archivo", lambda ruta: False)
     monkeypatch.setattr(gh, "sha_datos", lambda: "sha%d" % len(bajadas))
-    monkeypatch.setattr(gh, "bajar_datos", lambda d: bajadas.append(d) or True)
+    monkeypatch.setattr(gh, "bajar_datos", lambda d, sha=None: bajadas.append(d) or True)
     ahora = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     run = {"id": 1, "evento": "workflow_dispatch", "estado": "in_progress", "conclusion": None,
            "creado": ahora, "iniciado": ahora, "url": "https://github.com/u/r/actions/runs/1"}

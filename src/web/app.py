@@ -129,7 +129,7 @@ def sincronizar(forzar: bool = False) -> bool:
         sha = gh.sha_datos()
         if not sha or sha == nube.sha:
             return False
-        if not gh.bajar_datos(DATA_DIR):
+        if not gh.bajar_datos(DATA_DIR, sha):
             return False
         nube.sha = sha
         log.info(f"Datos nuevos bajados de GitHub ({sha[:7]})")
@@ -150,7 +150,17 @@ def _actualizar_estado_nube() -> None:
                and (r["evento"] == "workflow_dispatch" or time.time() - _ts(r["iniciado"]) > 60)]
     nube.en_curso = activas[-1] if activas else None
     if not trabajo.corriendo:
-        return
+        # Si el servidor se reinició en medio de una búsqueda lanzada desde la web, se pierde el estado en
+        # memoria y la página creería que ya terminó. Se retoma la ejecución manual que siga activa.
+        manuales = [r for r in activas if r["evento"] == "workflow_dispatch"]
+        with trabajo.lock:
+            if manuales and not trabajo.corriendo:
+                trabajo.corriendo, trabajo.error = True, None
+                trabajo.inicio = trabajo.inicio or dt.datetime.now().strftime("%Y-%m-%d %H:%M")
+                nube.disparo = _ts(manuales[-1]["creado"])
+        if not trabajo.corriendo:
+            sincronizar()   # terminó una búsqueda programada: trae los datos nuevos (como mucho 1 vez por minuto)
+            return
     if nube.disparo is None:
         return
     mios = [r for r in runs if r["evento"] == "workflow_dispatch" and _ts(r["creado"]) >= nube.disparo - 90]
