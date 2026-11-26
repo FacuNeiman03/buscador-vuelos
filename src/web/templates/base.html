@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>{% block titulo %}Vuelos baratos{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --font:"Geist",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --bg:#f5f4f0;--surface:#fff;--surface-2:#efeee9;--border:#e3e1da;--border-strong:#cdcac1;
+  --text:#17181c;--text-2:#4f5057;--text-3:#6a6b72;--ink:#17181c;--on-ink:#fff;--ink-hover:#33343b;
+  --accent:#2451c9;--focus:#2451c9;
+  --good:#13753a;--good-bg:#e3f3e8;--good-line:#9fd3b1;--bad:#b3261e;--bad-bg:#fbe8e6;--bad-line:#f0b7b1;
+  --sh:0 1px 2px rgba(23,24,28,.04),0 6px 20px rgba(23,24,28,.06);
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#101113;--surface:#18191c;--surface-2:#202125;--border:#2b2c31;--border-strong:#3c3d44;
+  --text:#f2f2ef;--text-2:#bdbec4;--text-3:#94959c;--ink:#f2f2ef;--on-ink:#111214;--ink-hover:#d9d9d5;
+  --accent:#86a6ff;--focus:#86a6ff;
+  --good:#62d18c;--good-bg:#132b1c;--good-line:#245a37;--bad:#ff8f86;--bad-bg:#361917;--bad-line:#6b2e29;
+  --sh:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+}}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 var(--font);-webkit-font-smoothing:antialiased}
+.wrap{max-width:560px;margin:0 auto;padding:24px 16px 48px}
+a{color:var(--accent);text-underline-offset:2px}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:6px}
+.i{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:28px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:650;font-size:16px;color:var(--text);text-decoration:none}
+.logo{width:32px;height:32px;border-radius:9px;background:var(--ink);color:var(--on-ink);display:grid;place-items:center}
+.logo .i{width:18px;height:18px}
+.back{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:500;text-decoration:none;color:var(--text-2);padding:8px 10px;border-radius:8px}
+.back:hover{background:var(--surface-2);color:var(--text)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:28px;box-shadow:var(--sh)}
+@media (max-width:480px){.card{padding:20px;border-radius:14px}}
+.ico-circ{width:44px;height:44px;border-radius:12px;background:var(--surface-2);display:grid;place-items:center;margin-bottom:16px}
+.ico-circ .i{width:22px;height:22px}
+h1{font-size:24px;line-height:1.2;letter-spacing:-.02em;margin:0 0 8px;font-weight:650}
+.sub{color:var(--text-2);font-size:15px;margin:0 0 22px}
+label{display:block;font-size:13px;font-weight:550;margin:18px 0 6px}
+label small{font-weight:400;color:var(--text-3)}
+input,select{width:100%;min-height:44px;padding:0 12px;border:1px solid var(--border-strong);border-radius:8px;background:var(--surface);color:var(--text);font:inherit;font-size:15px}
+select{appearance:none;-webkit-appearance:none;padding-right:34px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+input:focus,select:focus{outline:none;border-color:var(--focus);box-shadow:0 0 0 3px color-mix(in srgb,var(--focus) 22%,transparent)}
+.fila{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:360px){.fila{grid-template-columns:1fr}}
+button{margin-top:24px;width:100%;min-height:46px;border:0;border-radius:8px;background:var(--ink);color:var(--on-ink);font:inherit;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+button:hover{background:var(--ink-hover)}
+.msg{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;margin-bottom:16px;font-size:14px;border:1px solid}
+.msg .i{margin-top:2px}
+.ok{background:var(--good-bg);color:var(--good);border-color:var(--good-line)}
+.err{background:var(--bad-bg);color:var(--bad);border-color:var(--bad-line)}
+.hp{position:absolute;left:-9999px}
+.nota{font-size:13px;color:var(--text-3);margin:16px 0 0}
+</style>
+</head>
+<body><div class="wrap">
+<header class="top">
+  <a class="brand" href="/"><span class="logo" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M3.5 13.5l4 1 3-3-6.5-4 1.5-1.5 8.5 2 3.2-3.2a1.8 1.8 0 0 1 2.5 2.5L16.5 10.5l2 8.5-1.5 1.5-4-6.5-3 3 1 4-1.5 1.5-2-3.5-3.5-2z"/></svg></span>Vuelos baratos</a>
+  <a class="back" href="/"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Ver reportes</a>
+</header>
+<main>{% block contenido %}{% endblock %}</main>
+</div></body>
+</html>

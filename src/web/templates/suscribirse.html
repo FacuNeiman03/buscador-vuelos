@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block titulo %}Alertas por email · Vuelos baratos{% endblock %}
+{% block contenido %}
+<style>
+.tipos{display:grid;gap:8px;margin-top:6px}
+.tipo{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border:1px solid var(--border-strong);border-radius:10px;cursor:pointer;margin:0;font-weight:400}
+.tipo input{width:auto;min-height:0;margin-top:3px;accent-color:var(--focus)}
+.tipo b{display:block;font-size:14px;font-weight:600}
+.tipo span{font-size:13px;color:var(--text-3)}
+.tipo:has(input:checked){border-color:var(--focus);box-shadow:0 0 0 1px var(--focus)}
+.aviso{border-top:1px solid var(--border-strong);margin-top:18px;padding-top:2px}
+.aviso[hidden]{display:none}
+.chk{display:flex;gap:8px;align-items:center;font-weight:400;margin-top:16px}
+.chk input{width:auto;min-height:0;accent-color:var(--focus)}
+.ayuda{font-size:12.5px;color:var(--text-3);margin:6px 0 0}
+.pref{position:relative}.pref span{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-3);font-size:14px}.pref input{padding-left:46px}
+</style>
+<div class="card">
+  <span class="ico-circ" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span>
+  <h1>Alertas por email</h1>
+  <p class="sub">Elegí si querés enterarte cada vez que aparece un precio más bajo que todo lo visto, o cuando el pasaje llegue a un precio que vos elijas.</p>
+  {% if ok %}<div class="msg ok" role="status"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>{{ ok }}</span></div>{% endif %}
+  {% if error %}<div class="msg err" role="alert"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l10 18H2L12 3z"/><path d="M12 10v5M12 18v.01"/></svg><span>{{ error }}</span></div>{% endif %}
+  {% if busquedas %}
+  <form method="post" action="/suscribirse" id="frm">
+    <label for="email">Tu email</label>
+    <input id="email" name="email" type="email" required maxlength="254" value="{{ datos.email or '' }}" autocomplete="email" placeholder="nombre@ejemplo.com">
+    <label for="busqueda">Viaje</label>
+    <select id="busqueda" name="busqueda" required>
+      {% for b in busquedas %}<option value="{{ b }}" {% if b == sel %}selected{% endif %}>{{ b }}</option>{% endfor %}
+    </select>
+
+    <span id="lblTipo" style="display:block;font-size:13px;font-weight:550;margin:18px 0 0">¿Cuándo te avisamos?</span>
+    <div class="tipos" role="radiogroup" aria-labelledby="lblTipo">
+      <label class="tipo"><input type="radio" name="tipo" value="mejora" {% if datos.tipo != 'precio' %}checked{% endif %}>
+        <div><b>Cuando aparezca un precio más bajo</b><span>Más barato que el mínimo que ya vimos, o un vuelo mejor al mismo precio.</span></div></label>
+      <label class="tipo"><input type="radio" name="tipo" value="precio" {% if datos.tipo == 'precio' %}checked{% endif %}>
+        <div><b>Cuando llegue a un precio que yo elijo</b><span>Por ejemplo: "avisame si baja de US$ 80 por persona".</span></div></label>
+    </div>
+
+    <div class="aviso" id="aviso" {% if datos.tipo != 'precio' %}hidden{% endif %}>
+      <label for="precio_max">Avisame cuando cueste <small>(por persona, ida y vuelta si aplica)</small></label>
+      <div class="pref"><span id="mon">US$</span><input id="precio_max" name="precio_max" type="number" min="1" step="any" inputmode="decimal" value="{{ datos.precio_max or '' }}" placeholder="80"></div>
+      <p class="ayuda" id="hoy"></p>
+      <div class="fila">
+        <div><label for="duracion">Durante</label><select id="duracion" name="duracion">
+          {% for d in duraciones %}<option value="{{ d }}" {% if (datos.duracion or '30')|string == d|string %}selected{% endif %}>{{ d }} días</option>{% endfor %}
+          <option value="0" {% if datos.duracion == '0' %}selected{% endif %}>Sin vencimiento</option></select></div>
+        <div><label for="repetir">Cada cuánto</label><select id="repetir" name="repetir">
+          <option value="bajada" {% if datos.repetir in (None, '', 'bajada') %}selected{% endif %}>Al llegar y si baja más</option>
+          <option value="diario" {% if datos.repetir == 'diario' %}selected{% endif %}>Todos los días mientras siga</option>
+          <option value="una_vez" {% if datos.repetir == 'una_vez' %}selected{% endif %}>Una sola vez</option></select></div>
+      </div>
+      <div class="fila">
+        <div><label for="dias_min">Viaje de al menos <small>(días, opcional)</small></label><input id="dias_min" name="dias_min" type="number" min="1" step="1" value="{{ datos.dias_min or '' }}"></div>
+        <div><label for="dias_max">y como mucho <small>(días, opcional)</small></label><input id="dias_max" name="dias_max" type="number" min="1" step="1" value="{{ datos.dias_max or '' }}"></div>
+      </div>
+      <label for="equipaje">Equipaje</label>
+      <select id="equipaje" name="equipaje" data-sel="{{ datos.equipaje or '' }}"></select>
+      <label class="chk"><input type="checkbox" name="solo_directos" value="1" {% if datos.solo_directos %}checked{% endif %}>Solo vuelos directos</label>
+    </div>
+
+    <div class="fila">
+      <div><label for="desde">Salir desde <small>(opcional)</small></label><input id="desde" name="desde" type="date" value="{{ datos.desde or '' }}"></div>
+      <div><label for="hasta">Salir hasta <small>(opcional)</small></label><input id="hasta" name="hasta" type="date" value="{{ datos.hasta or '' }}"></div>
+    </div>
+    <input class="hp" name="web" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <button type="submit">Avisarme</button>
+  </form>
+  <p class="nota">Si elegís fechas, solo cuentan los vuelos que salgan en ese rango. Cada email trae un link para darte de baja. Si volvés a anotarte con el mismo email y viaje, se actualiza tu aviso.</p>
+  <script>
+  (function(){
+    const INFO = {{ info|tojson }};
+    const EQ = {ninguno:"Solo mochila", mano:"Con carry on", despachado:"Con valija despachada"};
+    const $ = s => document.querySelector(s);
+    function pintar(){
+      const i = INFO.find(x => x.nombre === $("#busqueda").value) || {};
+      $("#mon").textContent = (i.moneda || "USD") === "USD" ? "US$" : (i.moneda || "");
+      $("#hoy").textContent = i.hoy ? `Hoy el más barato está en ${$("#mon").textContent} ${i.hoy} por persona.` : "";
+      const sel = $("#equipaje"), prev = sel.value || sel.dataset.sel;
+      const eqs = i.equipajes || ["ninguno"];
+      sel.innerHTML = eqs.map((e,k) => `<option value="${k ? e : ""}">${EQ[e] || e}${k ? "" : " (el principal)"}</option>`).join("");
+      if([...sel.options].some(o => o.value === prev)) sel.value = prev;
+      sel.previousElementSibling.hidden = sel.hidden = eqs.length < 2;
+    }
+    function tipo(){ const p = document.querySelector("input[name=tipo]:checked").value === "precio";
+      $("#aviso").hidden = !p; $("#precio_max").required = p; }
+    $("#busqueda").addEventListener("change", pintar);
+    document.querySelectorAll("input[name=tipo]").forEach(r => r.addEventListener("change", tipo));
+    pintar(); tipo();
+  })();
+  </script>
+  {% else %}
+  <p class="sub" style="margin:0">No hay búsquedas activas en este momento.</p>
+  {% endif %}
+</div>
+{% endblock %}
