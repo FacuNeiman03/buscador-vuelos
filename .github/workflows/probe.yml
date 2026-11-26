@@ -2,17 +2,20 @@ name: Prueba navegador
 on:
   push:
     branches: [prueba-navegador]
-    paths: [probe.py, .github/workflows/probe.yml, src/**]
+    paths: [prueba.yaml, .github/workflows/probe.yml, src/**]
 permissions: {contents: write}
 jobs:
   probe:
     runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env: {VUELOS_DATA: /tmp/v/data, VUELOS_DB: /tmp/v/data/historial.db, VUELOS_REPORTES: salida/reportes, VUELOS_LOGS: salida/logs}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: '3.12'}
       - run: pip install -r requirements.txt playwright==1.49.1
-      - run: rm -rf salida; python probe.py
-      - run: |
+      - run: rm -rf salida; mkdir -p salida; python -m src.main --config prueba.yaml --forzar --sin-email --no-abrir 2>&1 | tee salida/salida.txt; cp /tmp/v/data/historial.db salida/ || true
+      - if: always()
+        run: |
           git config user.name bot; git config user.email bot@x
           git add -A salida; git commit -m "salida [skip ci]" -q; git push -q
