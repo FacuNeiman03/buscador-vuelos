@@ -1,0 +1,378 @@
+{
+ "chromium_ua": [
+  {
+   "n": 0,
+   "rpc": [
+    [
+     1.1,
+     359,
+     true
+    ]
+   ],
+   "ua": "ke Gecko) Chrome/131.0.0.0 Safari/537.36",
+   "url": "https://www.google.com/travel/flights/search?tfs=Gh8SCjIwMjc",
+   "labels": []
+  },
+  {
+   "n": 1,
+   "rpc": [
+    [
+     1.7,
+     360,
+     true
+    ]
+   ],
+   "ua": "ke Gecko) Chrome/131.0.0.0 Safari/537.36",
+   "url": "https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjc",
+   "labels": [
+    " 5177",
+    " 5347",
+    " 5378"
+   ]
+  },
+  {
+   "n": 2,
+   "rpc": [
+    [
+     1.2,
+     361,
+     true
+    ]
+   ],
+   "ua": "ke Gecko) Chrome/131.0.0.0 Safari/537.36",
+   "url": "https://www.google.com/travel/flights/search?tfs=Gh8SCjIwMjc",
+   "labels": [
+    " 313 ",
+    " 336 ",
+    " 570 "
+   ]
+  },
+  {
+   "n": 3,
+   "rpc": [
+    [
+     0.9,
+     360,
+     true
+    ]
+   ],
+   "ua": "ke Gecko) Chrome/131.0.0.0 Safari/537.36",
+   "url": "https://www.google.com/travel/flights/search?tfs=Gh8SCjIwMjc",
+   "labels": []
+  },
+  {
+   "n": 4,
+   "rpc": [
+    [
+     1.3,
+     364,
+     true
+    ]
+   ],
+   "ua": "ke Gecko) Chrome/131.0.0.0 Safari/537.36",
+   "url": "https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjc",
+   "labels": [
+    " 5177",
+    " 5347",
+    " 5378"
+   ]
+  },
+  {
+   "n": 5,
+   "rpc": [
+    [
+     1.9,
+     18730,
+     false
+    ]
+   ],
+   "ua": "ke Gecko) Chrome/131.0.0.0 Safari/537.36",
+   "url": "https://www.google.com/travel/flights/search?tfs=Gh8SCjIwMjc",
+   "labels": [
+    " 313 ",
+    " 336 ",
+    " 570 "
+   ]
+  }
+ ],
+ "chrome_headless": [
+  {
+   "n": 0,
+   "rpc": [
+    [
+     1.0,
+     360,
+     true
+    ]
+   ],
+   "ua": ") HeadlessChrome/157.0.0.0 Safari/537.36",
+   "url": "https://www.google.com/travel/flights/search?tfs=Gh8SCjIwMjc",
+   "labels": []
+  },
+  {
+   "n": 1,
+   "rpc": [
+    [
+     1.0,
+     361,
+     true
+    ]
+   ],
+   "ua": ") HeadlessChrome/157.0.0.0 Safari/537.36",
+   "url": "https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjc",
+   "labels": []
+  },
+  {
+   "n": 2,
+   "rpc": [
+    [
+     1.4,
+     18876,
+     false
+    ]
+   ],
+   "ua": ") HeadlessChrome/157.0.0.0 Safari/537.36",
+   "url": "https://www.google.com/travel/flights/search?tfs=Gh8SCjIwMjc",
+   "labels": [
+    " 313 ",
+    " 336 ",
+    " 570 "
+   ]
+  },
+  {
+   "n": 3,
+   "rpc": [
+    [
+     1.0,
+     363,
+     true
+    ]
+   ],
+   "ua": ") HeadlessChrome/157.0.0.0 Safari/537.36",
+   "url": "https://www.google.com/travel/flights/search?tfs=Gh8SCjIwMjc",
+   "labels": [
+    " 313 ",
+    " 313 "
+   ]
+  },
+  {
+   "n": 4,
+   "rpc": [
+    [
+     1.5,
+     128831,
+     false
+    ]
+   ],
+   "ua": ") HeadlessChrome/157.0.0.0 Safari/537.36",
+   "url": "https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjc",
+   "labels": [
+    " 5177",
+    " 5347",
+    " 5378"
+   ]
+  },
+  {
+   "n": 5,
+   "rpc": [
+    [
+     1.3,
+     18884,
+     false
+    ]
+   ],
+   "ua": ") HeadlessChrome/157.0.0.0 Safari/537.36",
+   "url": "https://www.google.com/travel/flights/search?tfs=Gh8SCjIwMjc",
+   "labels": [
+    " 313 ",
+    " 336 ",
+    " 570 "
+   ]
+  }
+ ],
+ "chrome_headed": [
+  {
+   "n": 0,
+   "rpc": [
+    [
+     0.9,
+     363,
+     true
+    ]
+   ],
+   "ua": "ke Gecko) Chrome/157.0.0.0 Safari/537.36",
+   "url": "https://www.google.com/travel/flights/search?tfs=Gh8SCjIwMjc",
+   "labels": []
+  },
+  {
+   "n": 1,
+   "rpc": [
+    [
+     1.3,
+     362,
+     true
+    ]
+   ],
+   "ua": "ke Gecko) Chrome/157.0.0.0 Safari/537.36",
+   "url": "https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjc",
+   "labels": [
+    " 5177",
+    " 5347",
+    " 5378"
+   ]
+  },
+  {
+   "n": 2,
+   "rpc": [
+    [
+     0.9,
+     361,
+     true
+    ]
+   ],
+   "ua": "ke Gecko) Chrome/157.0.0.0 Safari/537.36",
+   "url": "https://www.google.com/travel/flights/search?tfs=Gh8SCjIwMjc",
+   "labels": []
+  },
+  {
+   "n": 3,
+   "rpc": [
+    [
+     1.3,
+     359,
+     true
+    ]
+   ],
+   "ua": "ke Gecko) Chrome/157.0.0.0 Safari/537.36",
+   "url": "https://www.google.com/travel/flights/search?tfs=Gh8SCjIwMjc",
+   "labels": [
+    " 313 ",
+    " 313 "
+   ]
+  },
+  {
+   "n": 4,
+   "rpc": [
+    [
+     1.4,
+     364,
+     true
+    ]
+   ],
+   "ua": "ke Gecko) Chrome/157.0.0.0 Safari/537.36",
+   "url": "https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjc",
+   "labels": [
+    " 5177",
+    " 5347",
+    " 5378"
+   ]
+  },
+  {
+   "n": 5,
+   "rpc": [
+    [
+     1.3,
+     18742,
+     false
+    ]
+   ],
+   "ua": "ke Gecko) Chrome/157.0.0.0 Safari/537.36",
+   "url": "https://www.google.com/travel/flights/search?tfs=Gh8SCjIwMjc",
+   "labels": [
+    " 313 ",
+    " 336 ",
+    " 570 "
+   ]
+  }
+ ],
+ "chrome_headed_mismo_ctx": [
+  {
+   "n": 0,
+   "rpc": [
+    [
+     1.1,
+     15180,
+     false
+    ]
+   ],
+   "ua": "ke Gecko) Chrome/157.0.0.0 Safari/537.36",
+   "url": "https://www.google.com/travel/flights/search?tfs=Gh8SCjIwMjc",
+   "labels": [
+    " 313 ",
+    " 313 "
+   ]
+  },
+  {
+   "n": 1,
+   "rpc": [
+    [
+     0.9,
+     361,
+     true
+    ]
+   ],
+   "ua": "ke Gecko) Chrome/157.0.0.0 Safari/537.36",
+   "url": "https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjc",
+   "labels": []
+  },
+  {
+   "n": 2,
+   "rpc": [
+    [
+     1.1,
+     18771,
+     false
+    ]
+   ],
+   "ua": "ke Gecko) Chrome/157.0.0.0 Safari/537.36",
+   "url": "https://www.google.com/travel/flights/search?tfs=Gh8SCjIwMjc",
+   "labels": [
+    " 313 ",
+    " 336 ",
+    " 570 "
+   ]
+  },
+  {
+   "n": 3,
+   "rpc": [
+    [
+     0.9,
+     15168,
+     false
+    ]
+   ],
+   "ua": "ke Gecko) Chrome/157.0.0.0 Safari/537.36",
+   "url": "https://www.google.com/travel/flights/search?tfs=Gh8SCjIwMjc",
+   "labels": [
+    " 313 ",
+    " 313 "
+   ]
+  },
+  {
+   "n": 4,
+   "rpc": [
+    [
+     0.8,
+     362,
+     true
+    ]
+   ],
+   "ua": "ke Gecko) Chrome/157.0.0.0 Safari/537.36",
+   "url": "https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjc",
+   "labels": []
+  },
+  {
+   "n": 5,
+   "rpc": [
+    [
+     0.9,
+     362,
+     true
+    ]
+   ],
+   "ua": "ke Gecko) Chrome/157.0.0.0 Safari/537.36",
+   "url": "https://www.google.com/travel/flights/search?tfs=Gh8SCjIwMjc",
+   "labels": []
+  }
+ ]
+}
